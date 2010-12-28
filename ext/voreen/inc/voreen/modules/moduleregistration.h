@@ -71,6 +71,12 @@
 #include "voreen/modules/tiff/tiffmodule.h"
 #endif
 
+// custom modules
+
+// Manually added by Álvaro Castro Castilla
+#ifdef VRN_CUSTOM_MODULE_CA
+#include "voreen/modules/ca/camodule.h"
+#endif
 
 
 
@@ -117,6 +123,9 @@ void addAllModules(VoreenApplication* vapp) {
         vapp->addModule(new TiffModule());
     #endif
 
+    #ifdef VRN_CUSTOM_MODULE_CA
+        vapp->addModule(new CAModule());
+    #endif
 
 }
 

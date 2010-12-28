@@ -1,0 +1,63 @@
+#ifndef VRN_VOLUMECREATEPROCESSOR_H
+#define VRN_VOLUMECREATEPROCESSOR_H
+
+#include <string>
+#include "tgt/timer.h"
+#include "tgt/event/eventhandler.h"
+#include "voreen/core/processors/volumeprocessor.h"
+#include "voreen/core/properties/optionproperty.h"
+#include "voreen/core/properties/intproperty.h"
+#include "voreen/core/properties/buttonproperty.h"
+#include "voreen/core/properties/boolproperty.h"
+#include "voreen/core/datastructures/volume/volumeatomic.h"
+
+namespace voreen {
+
+class VolumeHandle;
+
+class CAVolumeProcessor : public VolumeProcessor {
+	public:
+		CAVolumeProcessor();
+
+		virtual ~CAVolumeProcessor();
+
+		virtual Processor* create() const;
+
+		virtual std::string getClassName() const {
+			return "CAVolumeProcessor";
+		}
+
+		virtual std::string getCategory() const {
+			return "Volume Processing";
+		}
+
+		virtual CodeState getCodeState() const {
+			return CODE_STATE_STABLE;
+		}
+
+		virtual std::string getProcessorInfo() const;
+
+	protected:
+		virtual void process();
+
+		virtual void deinitialize() throw (VoreenException);
+
+		void fillBox(VolumeUInt8* vds, tgt::ivec3 start, tgt::ivec3 end, uint8_t value);
+
+	private:
+		VolumePort outport_;
+
+		static const std::string loggerCat_; // category used in logging
+
+		IntProperty dimension_;
+
+		//! Timer object
+		tgt::Timer* timer_;
+
+		//! A local eventhandle which is added to the timer
+		tgt::EventHandler eventHandler_;
+};
+
+}   //namespace
+
+#endif

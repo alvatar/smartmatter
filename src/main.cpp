@@ -1,30 +1,3 @@
-/**********************************************************************
- *                                                                    *
- * Voreen - The Volume Rendering Engine                               *
- *                                                                    *
- * Copyright (C) 2005-2010 The Voreen Team. <http://www.voreen.org>   *
- *                                                                    *
- * This file is part of the Voreen software package. Voreen is free   *
- * software: you can redistribute it and/or modify it under the terms *
- * of the GNU General Public License version 2 as published by the    *
- * Free Software Foundation.                                          *
- *                                                                    *
- * Voreen is distributed in the hope that it will be useful,          *
- * but WITHOUT ANY WARRANTY; without even the implied warranty of     *
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the       *
- * GNU General Public License for more details.                       *
- *                                                                    *
- * You should have received a copy of the GNU General Public License  *
- * in the file "LICENSE.txt" along with this program.                 *
- * If not, see <http://www.gnu.org/licenses/>.                        *
- *                                                                    *
- * The authors reserve all rights not expressly granted herein. For   *
- * non-commercial academic use see the license exception specified in *
- * the file "LICENSE-academic.txt". To get information about          *
- * commercial licensing please contact the authors.                   *
- *                                                                    *
- **********************************************************************/
-
 #ifdef WIN32
 #include <windows.h>
 #endif
@@ -42,16 +15,43 @@
 #include "voreen/core/network/processornetwork.h"
 #include "voreen/core/processors/canvasrenderer.h"
 
-using namespace voreen;
+#include "voreen/modules/ca/cavolumeprocessor.h"
 
 //---------------------------------------------------------------------------
 
-tgt::GLUTCanvas* canvas = 0;
+using namespace voreen;
+
 VoreenApplication* app = 0;
 
 NetworkEvaluator* networkEvaluator = 0;
 ProcessorNetwork* network = 0;
 VoreenPainter* painter = 0;
+
+
+/*
+namespace tgt {
+
+class SyncGLUTCanvas : public tgt::GLUTCanvas {
+	public:
+		SyncGLUTCanvas(const std::string& title = "",
+				const ivec2& size = ivec2(DEFAULT_WINDOW_WIDTH, DEFAULT_WINDOW_HEIGHT),
+				const GLCanvas::Buffers buffers = RGBADD)
+			: GLUTCanvas(title, size, buffers) {}
+
+		void update() {
+			tgt::GLUTCanvas::update();
+			std::cout << "update();" << std::endl;
+			std::vector<CAVolumeProcessor*> cap = network->getProcessorsByType<CAVolumeProcessor>();
+			if(cap.size() > 0) {
+				cap[0]->invalidate(Processor::INVALID_RESULT);
+			}
+		}
+};
+
+}
+*/
+
+tgt::GLUTCanvas* canvas = 0;
 
 //---------------------------------------------------------------------------
 
@@ -63,7 +63,7 @@ void initialize() {
 
     Workspace* workspace = new Workspace();
     //workspace->load(VoreenApplication::app()->getWorkspacePath("/standard.vws"));
-    workspace->load("../data/workspaces/standard.vws");
+    workspace->load("../data/workspaces/ca-standard.vws");
 
     // initialize the network evaluator
     networkEvaluator = new NetworkEvaluator();
@@ -117,23 +117,24 @@ void keyPressed(unsigned char key, int /*x*/, int /*y*/) {
     }
 }
 
+
+
 int main(int argc, char** argv) {
-    VoreenApplication* app = new VoreenApplication("simple-GLUT", "simple-GLUT", argc, argv,
-        VoreenApplication::APP_ALL);
-    app->init();
+	VoreenApplication* app = new VoreenApplication("simple-GLUT", "simple-GLUT", argc, argv,
+			VoreenApplication::APP_ALL);
+	app->init();
 
-    glutInit(&argc, argv);
+	glutInit(&argc, argv);
 
-    // initialize canvas
-    canvas = new tgt::GLUTCanvas("Voreen - The Volume Rendering Engine",
-                                  tgt::ivec2(512, 512), tgt::GLCanvas::RGBADD);
-    canvas->init();
+	canvas = new tgt::GLUTCanvas("Voreen - The Volume Rendering Engine",
+			tgt::ivec2(512, 512), tgt::GLCanvas::RGBADD);
+	canvas->init();
 
-    glutKeyboardFunc(keyPressed);
+	glutKeyboardFunc(keyPressed);
 
-    app->initGL();
-    initialize();
+	app->initGL();
+	initialize();
 
-    glutMainLoop();
-    return 0; // will never be reached for standard GLUT
+	glutMainLoop();
+	return 0; // will never be reached for standard GLUT
 }

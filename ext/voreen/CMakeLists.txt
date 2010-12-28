@@ -3,6 +3,7 @@ cmake_policy(SET CMP0015 NEW)
 project(voreen)
 
 add_definitions(-DVRN_MODULE_BASE)
+add_definitions(-DVRN_CUSTOM_MODULE_CA)
 
 include_directories(
 	".."
@@ -450,6 +451,10 @@ file(
 	#./src/qt/pch_qt.h
 	#./src/qt/qrc_vrn_qt.cpp
 	#./src/qt/versionqt.cpp
+
+	# Custom modules
+	./src/modules/ca/camodule.cpp
+	./src/modules/ca/cavolumeprocessor.cpp
 	)
 
 add_library(

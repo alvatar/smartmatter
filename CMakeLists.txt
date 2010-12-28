@@ -5,6 +5,7 @@ project(ipvr)
 include_directories(
 	"ext"
 	"ext/voreen/inc/"
+	"inc"
 	)
 
 link_directories(
