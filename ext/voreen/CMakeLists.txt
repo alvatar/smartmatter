@@ -5,6 +5,10 @@ project(voreen)
 add_definitions(-DVRN_MODULE_BASE)
 add_definitions(-DVRN_CUSTOM_MODULE_CA)
 
+find_package(Qt4 COMPONENTS QtCore QtGui QtOpenGL REQUIRED)
+SET( QT_USE_QTOPENGL TRUE )  
+INCLUDE( ${QT_USE_FILE} )
+
 include_directories(
 	".."
 	"../voreen/inc/"
@@ -446,11 +450,14 @@ file(
 	#./src/modules/pvm/pvmvolumereader.cpp
 	#./src/modules/pvm/ddsbase.cpp
 	#./src/modules/pvm/pvmmodule.cpp
-	#./src/qt/voreenapplicationqt.cpp
-	#./src/qt/widgets/labelingwidgetqt.cpp
-	#./src/qt/pch_qt.h
-	#./src/qt/qrc_vrn_qt.cpp
-	#./src/qt/versionqt.cpp
+
+	# Qt
+	./src/qt/voreenapplicationqt.cpp
+	./src/qt/progressdialog.cpp
+	./src/qt/widgets/labelingwidgetqt.cpp
+	./src/qt/pch_qt.h
+	./src/qt/qrc_vrn_qt.cpp
+	./src/qt/versionqt.cpp
 
 	# Custom modules
 	./src/modules/ca/camodule.cpp
@@ -466,4 +473,5 @@ target_link_libraries(
 	voreen
 	tgt
 	tinyxml
+	${QT_LIBRARIES}
 	)

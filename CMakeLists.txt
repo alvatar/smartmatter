@@ -2,6 +2,10 @@ cmake_minimum_required(VERSION 2.6 FATAL_ERROR)
 cmake_policy(SET CMP0015 NEW)
 project(ipvr)
 
+find_package(Qt4 COMPONENTS QtCore QtGui QtOpenGL REQUIRED)
+SET( QT_USE_QTOPENGL TRUE )  
+INCLUDE( ${QT_USE_FILE} )
+
 include_directories(
 	"ext"
 	"ext/voreen/inc/"
@@ -37,8 +41,9 @@ add_executable(
 target_link_libraries(
 	ipvr
 	GL
-	GLU
-	glut
+	#GLU
+	#glut
+	${QT_LIBRARIES}
 	GLEW
 	tgt
 	tinyxml

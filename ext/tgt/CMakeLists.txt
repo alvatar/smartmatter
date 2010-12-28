@@ -121,11 +121,11 @@ file(
 	./texturereadertga.cpp
 	./mesh.cpp
 	./timer.cpp
-	./glut/gluttimer.cpp
-	./glut/glutcanvas.cpp
-	./glut/glutmouse.cpp
-	./glut/glutapplication.cpp
-	./glut/toolkitfactory.cpp
+	#./glut/gluttimer.cpp
+	#./glut/glutcanvas.cpp
+	#./glut/glutmouse.cpp
+	#./glut/glutapplication.cpp
+	#./glut/toolkitfactory.cpp
 	./texture.cpp
 	./framebufferobject.cpp
 	#./vertexarray.cpp
@@ -142,14 +142,15 @@ file(
 	./animation/circleanimation.cpp
 	./animation/bsplineanimation.cpp
 
-	#./qt/qttimer.cpp
-	#./qt/qtcanvas.cpp
-	#./qt/qtapplication.cpp
+	# Qt
+	./qt/qttimer.cpp
+	./qt/qtcanvas.cpp
+	./qt/qtapplication.cpp
 
-	#./qt/tgt_qt.h
-	#./qt/qtcanvas.h
-	#./qt/qtapplication.h
-	#./qt/qttimer.h
+	./qt/tgt_qt.h
+	./qt/qtcanvas.h
+	./qt/qtapplication.h
+	./qt/qttimer.h
 
 	)
 

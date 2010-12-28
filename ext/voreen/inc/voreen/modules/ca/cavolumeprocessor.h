@@ -2,8 +2,10 @@
 #define VRN_VOLUMECREATEPROCESSOR_H
 
 #include <string>
+
 #include "tgt/timer.h"
 #include "tgt/event/eventhandler.h"
+
 #include "voreen/core/processors/volumeprocessor.h"
 #include "voreen/core/properties/optionproperty.h"
 #include "voreen/core/properties/intproperty.h"
@@ -37,12 +39,16 @@ class CAVolumeProcessor : public VolumeProcessor {
 
 		virtual std::string getProcessorInfo() const;
 
+		virtual void timerEvent(tgt::TimeEvent* te);
+
 	protected:
 		virtual void process();
 
 		virtual void deinitialize() throw (VoreenException);
 
 		void fillBox(VolumeUInt8* vds, tgt::ivec3 start, tgt::ivec3 end, uint8_t value);
+
+		virtual void initialize() throw (VoreenException);
 
 	private:
 		VolumePort outport_;
@@ -54,7 +60,7 @@ class CAVolumeProcessor : public VolumeProcessor {
 		//! Timer object
 		tgt::Timer* timer_;
 
-		//! A local eventhandle which is added to the timer
+		//! A local eventhanlde which is added to the timer
 		tgt::EventHandler eventHandler_;
 };
 

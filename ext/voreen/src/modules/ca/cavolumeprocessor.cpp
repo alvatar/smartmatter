@@ -16,12 +16,15 @@ CAVolumeProcessor::CAVolumeProcessor()
 	: VolumeProcessor()
 	  , outport_(Port::OUTPORT, "volumehandle.output", 0)
 	  , dimension_("dimension", "Dimension", 64, 2, 1024, Processor::VALID) 
-	  ,timer_(0)
-	  ,eventHandler_()
+      , timer_(0)
+      , eventHandler_()
 {
 	addPort(outport_);
 
 	addProperty(dimension_);
+
+    eventHandler_.addListenerToBack(this);
+    timer_ = VoreenApplication::app()->createTimer(&eventHandler_);
 }
 
 CAVolumeProcessor::~CAVolumeProcessor() {
@@ -35,10 +38,25 @@ std::string CAVolumeProcessor::getProcessorInfo() const {
 	return std::string("Generates an 8-bit dataset from a Cellular Automata");
 }
 
+void CAVolumeProcessor::initialize() throw (VoreenException) {
+	Processor::initialize();
+
+    if (timer_) {
+		timer_->start(1000);
+    } else {
+        LWARNING("No timer.");
+        return;
+	}
+}
+
 void CAVolumeProcessor::deinitialize() throw (VoreenException) {
 	outport_.deleteVolume();
 
 	VolumeProcessor::deinitialize();
+}
+
+void CAVolumeProcessor::timerEvent(tgt::TimeEvent* te) {
+	std::cout << "CHECK DATA CHANGES" << std::endl;
 }
 
 void CAVolumeProcessor::process() {
