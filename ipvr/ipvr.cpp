@@ -1,3 +1,5 @@
+#include <QObject>
+#include <QEvent>
 #include <QApplication>
 #include <QMainWindow>
 
@@ -15,6 +17,21 @@
 
 using namespace voreen;
 
+class MyEventFilter : public QObject {
+	protected:
+		bool eventFilter(QObject *obj, QEvent *ev) {
+			if(ev->type() == QEvent::KeyPress) {
+				QKeyEvent *ke = (QKeyEvent *)ev;
+				if ( ke->key() == Qt::Key_Escape ) {
+					ke->accept();
+					QApplication::exit(0);
+				}
+				return true;
+			}
+			return QObject::eventFilter(obj, ev);
+		}
+};
+
 int main(int argc, char* argv[]) {
     // init both Qt and Voreen application (does not require OpenGL context)
     QApplication myapp(argc, argv);
@@ -27,8 +44,11 @@ int main(int argc, char* argv[]) {
 
     // create the mainwindow and assign a canvas to it as central widget
     QMainWindow* mainwindow = new QMainWindow();
+
     VoreenApplicationQt::qtApp()->setMainWindow(mainwindow);
     tgt::QtCanvas* canvas = new tgt::QtCanvas("Voreen - The Volume Rendering Engine");
+	MyEventFilter filter;
+	canvas->installEventFilter(&filter);
     mainwindow->setCentralWidget(canvas);
     mainwindow->resize(512, 512);
     mainwindow->show();

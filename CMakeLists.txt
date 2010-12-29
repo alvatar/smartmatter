@@ -1,8 +1,14 @@
 cmake_minimum_required(VERSION 2.6 FATAL_ERROR)
 cmake_policy(SET CMP0015 NEW)
 
+###############################################################################
 ## IPCC
+###############################################################################
+
 project(ipcc)
+
+# Options
+set(FORK_IPVR FALSE)
 
 find_package(Boost REQUIRED)
 
@@ -20,12 +26,26 @@ add_executable(
 	${PROJECT_SOURCES}
 	)
 
+if(FORK_IPVR)
+	message("IPVR forking activated")
+	set_property(
+		TARGET
+		ipcc
+		PROPERTY
+		COMPILE_DEFINITIONS
+		_FORK_IPVR
+		)
+endif(FORK_IPVR)
+
 target_link_libraries(
 	ipcc
     rt
 	)
 
+###############################################################################
 ## IPVR
+###############################################################################
+
 project(ipvr)
 
 include_directories(

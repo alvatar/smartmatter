@@ -1,5 +1,8 @@
 #include <iostream>
 #include <csignal>
+#ifdef _FORK_IPVR
+#include <unistd.h>
+#endif
 
 #include <boost/interprocess/shared_memory_object.hpp>
 #include <boost/interprocess/mapped_region.hpp>
@@ -10,8 +13,6 @@
 using namespace std;
 
 bool loop = true;
-//typedef Lattice<char> LatticeType;
-//typedef LatticeType::VoxelType VoxelType;
 
 void exit_program(int sig) {
     printf("Catched signal: %d ... !!\n", sig);
@@ -23,6 +24,16 @@ void exit_program(int sig) {
 int main(int argc, char** argv) {
     
     (void) signal(SIGINT, exit_program);
+
+#ifdef _FORK_IPVR
+	pid_t pID = fork();
+	if (pID == 0) { // child code
+		execl("./ipvr", "./ipvr", (char *) 0);
+    } else if (pID < 0) { // parent code
+        cerr << "Failed to fork" << endl;
+        exit(1);
+    }
+#endif
 
     using namespace boost::interprocess;
     try {
