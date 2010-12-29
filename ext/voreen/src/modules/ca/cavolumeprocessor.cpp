@@ -1,10 +1,15 @@
-#include "voreen/modules/ca/cavolumeprocessor.h"
+#include <boost/interprocess/shared_memory_object.hpp>
+#include <boost/interprocess/mapped_region.hpp>
+#include <boost/interprocess/sync/scoped_lock.hpp>
 
 #include "voreen/core/datastructures/volume/volume.h"
 #include "voreen/core/datastructures/volume/volumehandle.h"
 #include "voreen/core/datastructures/volume/gradient.h"
 #include "voreen/core/voreenapplication.h"
-#include "tgt/spline.h"
+
+#include "lattice.hpp"
+
+#include "voreen/modules/ca/cavolumeprocessor.h"
 
 using tgt::vec2;
 
@@ -56,7 +61,29 @@ void CAVolumeProcessor::deinitialize() throw (VoreenException) {
 }
 
 void CAVolumeProcessor::timerEvent(tgt::TimeEvent* te) {
-	std::cout << "CHECK DATA CHANGES" << std::endl;
+    using namespace boost::interprocess;
+    try {
+        shared_memory_object shm_obj(open_only, "ipcc_shared_memory", read_write);
+        mapped_region region(shm_obj, read_write);
+
+        LatticeType *lattice = static_cast<LatticeType*>(region.get_address());
+		scoped_lock<interprocess_mutex> lock(lattice->header.mutex);
+		std::cout << "LOCKED INTERPROCESS MUTEX" << std::endl;
+
+		for(int i=0; i<lattice->size_x; i++) {
+			for(int j=0; j<lattice->size_y; j++) {
+				for(int k=0; k<lattice->size_z; k++) {
+					VoxelType v = lattice->voxels[i][j][k];
+					printf("r: %i, g: %i, b: %i\n", v.r, v.g, v.b);
+				}
+			}
+		}
+		std::cout << "UNLOCKED INTERPROCESS MUTEX" << std::endl;
+		// mutex is released here
+    } catch(interprocess_exception &e) {
+        std::cout << "Unexpected exception: " << e.what() << std::endl;
+        shared_memory_object::remove("ipcc_shared_memory");
+    }
 }
 
 void CAVolumeProcessor::process() {

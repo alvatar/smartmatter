@@ -1,16 +1,45 @@
 cmake_minimum_required(VERSION 2.6 FATAL_ERROR)
 cmake_policy(SET CMP0015 NEW)
-project(ipvr)
 
-find_package(Qt4 COMPONENTS QtCore QtGui QtOpenGL REQUIRED)
-SET( QT_USE_QTOPENGL TRUE )  
-INCLUDE( ${QT_USE_FILE} )
+## IPCC
+project(ipcc)
+
+find_package(Boost REQUIRED)
 
 include_directories(
+    "common"
+	)
+
+file(
+	GLOB PROJECT_SOURCES
+	"ipcc/ipcc.cpp"
+	)
+
+add_executable(
+	ipcc
+	${PROJECT_SOURCES}
+	)
+
+target_link_libraries(
+	ipcc
+    rt
+	)
+
+## IPVR
+project(ipvr)
+
+include_directories(
+	"common"
 	"ext"
 	"ext/voreen/inc/"
-	"inc"
+	"ipvr"
+	"ipcc"
 	)
+
+find_package(Qt4 COMPONENTS QtCore QtGui QtOpenGL REQUIRED)
+find_package(Boost REQUIRED)
+set( QT_USE_QTOPENGL TRUE )  
+include( ${QT_USE_FILE} )
 
 link_directories(
 	"ext/tinyxml/dep"
@@ -30,7 +59,7 @@ add_subdirectory(
 
 file(
 	GLOB PROJECT_SOURCES
-	"src/main.cpp"
+	"ipvr/ipvr.cpp"
 	)
 
 add_executable(
