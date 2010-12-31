@@ -3,17 +3,33 @@
 #include <boost/interprocess/sync/scoped_lock.hpp>
 
 #include "voreen/core/datastructures/volume/volume.h"
+#include "voreen/core/datastructures/volume/volumeatomic.h"
 #include "voreen/core/datastructures/volume/volumehandle.h"
 #include "voreen/core/datastructures/volume/gradient.h"
 #include "voreen/core/voreenapplication.h"
 
-#include "lattice.hpp"
-
 #include "voreen/modules/ca/cavolumeprocessor.h"
 
-using tgt::vec2;
-
 namespace voreen {
+
+//! Extends VolumeAtomic to allow redefinition of the internal data, avoiding re-creation
+//! of VolumeAtomics for every updateIPC call
+template <class T>
+class RawVolumeAtomic : public VolumeAtomic<T> {
+public:
+    RawVolumeAtomic(T* data
+                    ,const tgt::ivec3& dimensions
+                    ,const tgt::vec3& spacing = tgt::vec3(1.f)
+                    ,const tgt::mat4& transformation = tgt::mat4::identity
+                    ,int bitsStored = VolumeAtomic<T>::BITS_PER_VOXEL)
+		: VolumeAtomic<T>(data, dimensions, spacing, transformation, bitsStored) {}
+
+	virtual void setData(T* const data) {
+		this->data_ = data;
+	}
+
+
+};
 
 const std::string CAVolumeProcessor::loggerCat_("voreen.CAVolumeProcessor");
 
@@ -23,6 +39,8 @@ CAVolumeProcessor::CAVolumeProcessor()
 	  , dimension_("dimension", "Dimension", 64, 2, 1024, Processor::VALID) 
       , timer_(0)
       , eventHandler_()
+	  , target_(0)
+	  , ipcvolume_(0)
 {
 	addPort(outport_);
 
@@ -61,32 +79,40 @@ void CAVolumeProcessor::deinitialize() throw (VoreenException) {
 }
 
 void CAVolumeProcessor::timerEvent(tgt::TimeEvent* te) {
-    using namespace boost::interprocess;
-    try {
-        shared_memory_object shm_obj(open_only, "ipcc_shared_memory", read_write);
-        mapped_region region(shm_obj, read_write);
+	using namespace boost::interprocess;
+	try {
+		shared_memory_object shm_obj(open_only, "ipcc_shared_memory", read_write);
+		mapped_region region(shm_obj, read_write);
 
-        LatticeType *lattice = static_cast<LatticeType*>(region.get_address());
-		scoped_lock<interprocess_mutex> lock(lattice->header.mutex);
-		std::cout << "LOCKED INTERPROCESS MUTEX" << std::endl;
+		ipcvolume_ = static_cast<IPCVolumeUInt8*>(region.get_address());
+		scoped_lock<interprocess_mutex> lock(ipcvolume_->header.mutex);
 
-		for(int i=0; i<lattice->size_x; i++) {
-			for(int j=0; j<lattice->size_y; j++) {
-				for(int k=0; k<lattice->size_z; k++) {
-					VoxelType v = lattice->voxels[i][j][k];
-					printf("r: %i, g: %i, b: %i\n", v.r, v.g, v.b);
+		target_ = new VolumeUInt8(ivec3(40,40,40));
+
+		uint8_t *p = ipcvolume_->data;
+		for(int k=0; k<IPCVolumeUInt8::size_z; k++) {
+			for(int j=0; j<IPCVolumeUInt8::size_y; j++) {
+				for(int i=0; i<IPCVolumeUInt8::size_x; i++) {
+					target_->voxel(i,j,k) = *p++;
 				}
 			}
 		}
-		std::cout << "UNLOCKED INTERPROCESS MUTEX" << std::endl;
-		// mutex is released here
-    } catch(interprocess_exception &e) {
-        std::cout << "Unexpected exception: " << e.what() << std::endl;
-        shared_memory_object::remove("ipcc_shared_memory");
-    }
+
+		if (target_){
+			outport_.setData(new VolumeHandle(target_), true);
+		} else  {
+			outport_.setData(0, true);
+		}
+		invalidate();
+	} catch(interprocess_exception &e) {
+		std::cout << "Unexpected exception: " << e.what() << std::endl;
+		shared_memory_object::remove("ipcc_shared_memory");
+		outport_.setData(0, true);
+	}
 }
 
 void CAVolumeProcessor::process() {
+	/*
 	Volume* outputVolume = 0;
 
 	ivec3 dimensions;
@@ -117,6 +143,7 @@ void CAVolumeProcessor::process() {
 		outport_.setData(new VolumeHandle(outputVolume), true);
 	else
 		outport_.setData(0, true);
+		*/
 }
 
 void CAVolumeProcessor::fillBox(VolumeUInt8* vds, ivec3 start, ivec3 end, uint8_t value) {

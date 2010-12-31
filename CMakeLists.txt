@@ -14,6 +14,7 @@ find_package(Boost REQUIRED)
 
 include_directories(
     "common"
+	"ext"
 	)
 
 file(
@@ -40,6 +41,7 @@ endif(FORK_IPVR)
 target_link_libraries(
 	ipcc
     rt
+	voreen
 	)
 
 ###############################################################################

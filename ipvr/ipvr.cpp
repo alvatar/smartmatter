@@ -24,9 +24,8 @@ class MyEventFilter : public QObject {
 				QKeyEvent *ke = (QKeyEvent *)ev;
 				if ( ke->key() == Qt::Key_Escape ) {
 					ke->accept();
-					QApplication::exit(0);
+					QApplication::quit();
 				}
-				return true;
 			}
 			return QObject::eventFilter(obj, ev);
 		}

@@ -13,9 +13,14 @@
 #include "voreen/core/properties/boolproperty.h"
 #include "voreen/core/datastructures/volume/volumeatomic.h"
 
+#include "ipcvolume.hpp"
+
 namespace voreen {
 
 class VolumeHandle;
+template <class T> class RawVolumeAtomic;
+typedef RawVolumeAtomic<uint8_t> RawVolumeUInt8;
+
 
 class CAVolumeProcessor : public VolumeProcessor {
 	public:
@@ -56,6 +61,12 @@ class CAVolumeProcessor : public VolumeProcessor {
 		static const std::string loggerCat_; // category used in logging
 
 		IntProperty dimension_;
+
+		//! Structure used for sharing data via IPC
+        IPCVolumeUInt8 *ipcvolume_;
+
+		//! Structure for interpreting the shared data for visualization
+		VolumeUInt8 *target_;
 
 		//! Timer object
 		tgt::Timer* timer_;

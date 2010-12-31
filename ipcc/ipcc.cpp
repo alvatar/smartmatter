@@ -1,5 +1,6 @@
 #include <iostream>
 #include <csignal>
+#include <ctime>
 #ifdef _FORK_IPVR
 #include <unistd.h>
 #endif
@@ -8,7 +9,9 @@
 #include <boost/interprocess/mapped_region.hpp>
 #include <boost/interprocess/sync/scoped_lock.hpp>
 
-#include "lattice.hpp"
+#include "voreen/core/datastructures/volume/volumeatomic.h"
+
+#include "ipcvolume.hpp"
 
 using namespace std;
 
@@ -24,6 +27,7 @@ void exit_program(int sig) {
 int main(int argc, char** argv) {
     
     (void) signal(SIGINT, exit_program);
+	srand ( time(NULL) );
 
 #ifdef _FORK_IPVR
 	pid_t pID = fork();
@@ -36,24 +40,30 @@ int main(int argc, char** argv) {
 #endif
 
     using namespace boost::interprocess;
+    using namespace tgt;
+    using namespace voreen;
     try {
         shared_memory_object::remove("ipcc_shared_memory");
         shared_memory_object shm_obj(create_only , "ipcc_shared_memory", read_write);
-        shm_obj.truncate(sizeof(LatticeType));
+        shm_obj.truncate(sizeof(IPCVolumeUInt8));
         mapped_region region(shm_obj, read_write);
 
-        LatticeType *mem = static_cast<LatticeType*>(region.get_address());
-        LatticeType *lattice = new(mem) LatticeType;
+        IPCVolumeUInt8 *mem = static_cast<IPCVolumeUInt8*>(region.get_address());
+        IPCVolumeUInt8 *ipcvolume = new(mem) IPCVolumeUInt8();
+		VolumeUInt8* target = new VolumeUInt8( ipcvolume->data
+											   ,ivec3(IPCVolumeUInt8::size_x
+													 ,IPCVolumeUInt8::size_y
+													 ,IPCVolumeUInt8::size_z) );
         while(loop) {
-            scoped_lock<interprocess_mutex> lock(lattice->header.mutex);
-            for(int i=0; i<lattice->size_x; i++) {
-                for(int j=0; j<lattice->size_y; j++) {
-                    for(int k=0; k<lattice->size_z; k++) {
-                        lattice->voxels[i][j][k] = VoxelType(i,j,k);
+			int counter = 0;
+            scoped_lock<interprocess_mutex> lock(ipcvolume->header.mutex);
+            for(int k=0; k<IPCVolumeUInt8::size_z; k++) {
+                for(int j=0; j<IPCVolumeUInt8::size_y; j++) {
+                    for(int i=0; i<IPCVolumeUInt8::size_x; i++) {
+                        target->voxel(i,j,k) = rand()%255;
                     }
                 }
             }
-            cout << "Done writing from client process" << endl;
             // mutex is released here
         }
 		shared_memory_object::remove("ipcc_shared_memory");
