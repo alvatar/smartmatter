@@ -65,7 +65,7 @@ void CAVolumeProcessor::initialize() throw (VoreenException) {
 	Processor::initialize();
 
     if (timer_) {
-		timer_->start(1000);
+		timer_->start(100);
     } else {
         LWARNING("No timer.");
         return;
@@ -81,11 +81,16 @@ void CAVolumeProcessor::deinitialize() throw (VoreenException) {
 void CAVolumeProcessor::timerEvent(tgt::TimeEvent* te) {
 	using namespace boost::interprocess;
 	try {
-		shared_memory_object shm_obj(open_only, "ipcc_shared_memory", read_write);
+		shared_memory_object shm_obj(open_only, MEM_NAME, read_write);
 		mapped_region region(shm_obj, read_write);
+        std::cout << "Memory read correctly" << std::endl;
 
 		ipcvolume_ = static_cast<IPCVolumeUInt8*>(region.get_address());
 		scoped_lock<interprocess_mutex> lock(ipcvolume_->header.mutex);
+        if(!ipcvolume_->header.fresh_data) {
+            //ipcvolume_->header.cond_processing_ca.wait(lock);
+            return;
+        }
 
 		target_ = new VolumeUInt8(ivec3(40,40,40));
 
@@ -97,6 +102,8 @@ void CAVolumeProcessor::timerEvent(tgt::TimeEvent* te) {
 				}
 			}
 		}
+        ipcvolume_->header.fresh_data = false;
+        ipcvolume_->header.cond_processing_visuals.notify_one();
 
 		if (target_){
 			outport_.setData(new VolumeHandle(target_), true);
@@ -106,7 +113,6 @@ void CAVolumeProcessor::timerEvent(tgt::TimeEvent* te) {
 		invalidate();
 	} catch(interprocess_exception &e) {
 		std::cout << "Unexpected exception: " << e.what() << std::endl;
-		shared_memory_object::remove("ipcc_shared_memory");
 		outport_.setData(0, true);
 	}
 }

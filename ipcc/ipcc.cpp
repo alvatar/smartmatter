@@ -13,50 +13,56 @@
 
 #include "ipcvolume.hpp"
 
-using namespace std;
-
-bool loop = true;
-
 void exit_program(int sig) {
     printf("Catched signal: %d ... !!\n", sig);
     // redirect the SIGINT signal to default handling
     (void) signal(SIGINT, SIG_DFL);
-    loop=false;
+    exit(0);
 }
 
 int main(int argc, char** argv) {
-    
+
+    using namespace std;
+    using namespace boost::interprocess;
+    using namespace tgt;
+    using namespace voreen;
+
+    //Erase previous shared memory and schedule erasure on exit
+    struct shm_remove
+    {
+        shm_remove() { shared_memory_object::remove(MEM_NAME); }
+        ~shm_remove() { shared_memory_object::remove(MEM_NAME); }
+    } remover;
+
     (void) signal(SIGINT, exit_program);
-	srand ( time(NULL) );
+    srand ( time(NULL) );
 
 #ifdef _FORK_IPVR
-	pid_t pID = fork();
-	if (pID == 0) { // child code
-		execl("./ipvr", "./ipvr", (char *) 0);
+    pid_t pID = fork();
+    if (pID == 0) { // child code
+        execl("./ipvr", "./ipvr", (char *) 0);
     } else if (pID < 0) { // parent code
         cerr << "Failed to fork" << endl;
         exit(1);
     }
 #endif
 
-    using namespace boost::interprocess;
-    using namespace tgt;
-    using namespace voreen;
     try {
-        shared_memory_object::remove("ipcc_shared_memory");
-        shared_memory_object shm_obj(create_only , "ipcc_shared_memory", read_write);
+        shared_memory_object shm_obj(create_only , MEM_NAME, read_write);
         shm_obj.truncate(sizeof(IPCVolumeUInt8));
         mapped_region region(shm_obj, read_write);
 
         IPCVolumeUInt8 *mem = static_cast<IPCVolumeUInt8*>(region.get_address());
         IPCVolumeUInt8 *ipcvolume = new(mem) IPCVolumeUInt8();
-		VolumeUInt8* target = new VolumeUInt8( ipcvolume->data
-											   ,ivec3(IPCVolumeUInt8::size_x
-													 ,IPCVolumeUInt8::size_y
-													 ,IPCVolumeUInt8::size_z) );
-        while(loop) {
-			int counter = 0;
+        VolumeUInt8* target = new VolumeUInt8( ipcvolume->data
+                ,ivec3(IPCVolumeUInt8::size_x
+                    ,IPCVolumeUInt8::size_y
+                    ,IPCVolumeUInt8::size_z) );
+        while(true) {
             scoped_lock<interprocess_mutex> lock(ipcvolume->header.mutex);
+            if(ipcvolume->header.fresh_data) {
+                ipcvolume->header.cond_processing_visuals.wait(lock);
+            }
             for(int k=0; k<IPCVolumeUInt8::size_z; k++) {
                 for(int j=0; j<IPCVolumeUInt8::size_y; j++) {
                     for(int i=0; i<IPCVolumeUInt8::size_x; i++) {
@@ -64,9 +70,12 @@ int main(int argc, char** argv) {
                     }
                 }
             }
+            // notify the client that the CA processing is finished
+            //ipcvolume->header.cond_processing_ca.notify_one();
+            ipcvolume->header.fresh_data = true;
+            std::cout << "Step finished!" << std::endl;
             // mutex is released here
         }
-		shared_memory_object::remove("ipcc_shared_memory");
     } catch(interprocess_exception &e) {
         std::cout << e.what() << std::endl;
         return 1;

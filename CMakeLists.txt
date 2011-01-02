@@ -92,7 +92,7 @@ add_executable(
 target_link_libraries(
 	ipvr
 	GL
-	#GLU
+	GLU
 	#glut
 	${QT_LIBRARIES}
 	GLEW
