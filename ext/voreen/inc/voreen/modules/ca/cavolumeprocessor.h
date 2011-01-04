@@ -13,7 +13,7 @@
 #include "voreen/core/properties/boolproperty.h"
 #include "voreen/core/datastructures/volume/volumeatomic.h"
 
-#include "ipcvolume.hpp"
+#include "ipc_volume.hpp"
 
 namespace voreen {
 
@@ -56,23 +56,23 @@ class CAVolumeProcessor : public VolumeProcessor {
 		virtual void initialize() throw (VoreenException);
 
 	private:
-		VolumePort outport_;
+		VolumePort _outport;
 
-		static const std::string loggerCat_; // category used in logging
+		static const std::string _loggerCat; // category used in logging
 
-		IntProperty dimension_;
+		IntProperty _dimension;
 
 		//! Structure used for sharing data via IPC
-        IPCVolumeUInt8 *ipcvolume_;
+        ipc_volume_uint8 *_ipcvolume;
 
 		//! Structure for interpreting the shared data for visualization
-		VolumeUInt8 *target_;
+		VolumeUInt8 *_target;
 
 		//! Timer object
-		tgt::Timer* timer_;
+		tgt::Timer* _timer;
 
 		//! A local eventhanlde which is added to the timer
-		tgt::EventHandler eventHandler_;
+		tgt::EventHandler _eventHandler;
 };
 
 }   //namespace

@@ -31,23 +31,23 @@ public:
 
 };
 
-const std::string CAVolumeProcessor::loggerCat_("voreen.CAVolumeProcessor");
+const std::string CAVolumeProcessor::_loggerCat("voreen.CAVolumeProcessor");
 
 CAVolumeProcessor::CAVolumeProcessor()
 	: VolumeProcessor()
-	  , outport_(Port::OUTPORT, "volumehandle.output", 0)
-	  , dimension_("dimension", "Dimension", 64, 2, 1024, Processor::VALID) 
-      , timer_(0)
-      , eventHandler_()
-	  , target_(0)
-	  , ipcvolume_(0)
+	  , _outport(Port::OUTPORT, "volumehandle.output", 0)
+	  , _dimension("dimension", "Dimension", 64, 2, 1024, Processor::VALID) 
+      , _timer(0)
+      , _eventHandler()
+	  , _target(0)
+	  , _ipcvolume(0)
 {
-	addPort(outport_);
+	addPort(_outport);
 
-	addProperty(dimension_);
+	addProperty(_dimension);
 
-    eventHandler_.addListenerToBack(this);
-    timer_ = VoreenApplication::app()->createTimer(&eventHandler_);
+    _eventHandler.addListenerToBack(this);
+    _timer = VoreenApplication::app()->createTimer(&_eventHandler);
 }
 
 CAVolumeProcessor::~CAVolumeProcessor() {
@@ -64,8 +64,8 @@ std::string CAVolumeProcessor::getProcessorInfo() const {
 void CAVolumeProcessor::initialize() throw (VoreenException) {
 	Processor::initialize();
 
-    if (timer_) {
-		timer_->start(100);
+    if (_timer) {
+		_timer->start(1000);
     } else {
         LWARNING("No timer.");
         return;
@@ -73,7 +73,7 @@ void CAVolumeProcessor::initialize() throw (VoreenException) {
 }
 
 void CAVolumeProcessor::deinitialize() throw (VoreenException) {
-	outport_.deleteVolume();
+	_outport.deleteVolume();
 
 	VolumeProcessor::deinitialize();
 }
@@ -81,39 +81,41 @@ void CAVolumeProcessor::deinitialize() throw (VoreenException) {
 void CAVolumeProcessor::timerEvent(tgt::TimeEvent* te) {
 	using namespace boost::interprocess;
 	try {
-		shared_memory_object shm_obj(open_only, MEM_NAME, read_write);
+		shared_memory_object shm_obj(open_only, SHARED_MEMORY_NAME, read_write);
 		mapped_region region(shm_obj, read_write);
         std::cout << "Memory read correctly" << std::endl;
 
-		ipcvolume_ = static_cast<IPCVolumeUInt8*>(region.get_address());
-		scoped_lock<interprocess_mutex> lock(ipcvolume_->header.mutex);
-        if(!ipcvolume_->header.fresh_data) {
-            //ipcvolume_->header.cond_processing_ca.wait(lock);
+		_ipcvolume = static_cast<ipc_volume_uint8*>(region.get_address());
+		scoped_lock<interprocess_mutex> lock(_ipcvolume->header.mutex);
+        if(!_ipcvolume->header.fresh_data) {
+            //_ipcvolume->header.cond_processing_ca.wait(lock);
             return;
         }
 
-		target_ = new VolumeUInt8(ivec3(40,40,40));
+		_target = new VolumeUInt8(ivec3(ipc_volume_uint8::size_x
+                                        ,ipc_volume_uint8::size_y
+                                        ,ipc_volume_uint8::size_z));
 
-		uint8_t *p = ipcvolume_->data;
-		for(int k=0; k<IPCVolumeUInt8::size_z; k++) {
-			for(int j=0; j<IPCVolumeUInt8::size_y; j++) {
-				for(int i=0; i<IPCVolumeUInt8::size_x; i++) {
-					target_->voxel(i,j,k) = *p++;
+		uint8_t *p = _ipcvolume->data;
+		for(int k=0; k<ipc_volume_uint8::size_z; k++) {
+			for(int j=0; j<ipc_volume_uint8::size_y; j++) {
+				for(int i=0; i<ipc_volume_uint8::size_x; i++) {
+					_target->voxel(i,j,k) = *p++;
 				}
 			}
 		}
-        ipcvolume_->header.fresh_data = false;
-        ipcvolume_->header.cond_processing_visuals.notify_one();
+        _ipcvolume->header.fresh_data = false;
+        _ipcvolume->header.cond_processing_visuals.notify_one();
 
-		if (target_){
-			outport_.setData(new VolumeHandle(target_), true);
+		if (_target){
+			_outport.setData(new VolumeHandle(_target), true);
 		} else  {
-			outport_.setData(0, true);
+			_outport.setData(0, true);
 		}
 		invalidate();
 	} catch(interprocess_exception &e) {
 		std::cout << "Unexpected exception: " << e.what() << std::endl;
-		outport_.setData(0, true);
+		_outport.setData(0, true);
 	}
 }
 
@@ -122,7 +124,7 @@ void CAVolumeProcessor::process() {
 	Volume* outputVolume = 0;
 
 	ivec3 dimensions;
-	dimensions.x = dimension_.get();
+	dimensions.x = _dimension.get();
 	dimensions.y = dimensions.x;
 	dimensions.z = dimensions.x;
 
@@ -146,9 +148,9 @@ void CAVolumeProcessor::process() {
 
 	// assign computed volume to outport
 	if (outputVolume)
-		outport_.setData(new VolumeHandle(outputVolume), true);
+		_outport.setData(new VolumeHandle(outputVolume), true);
 	else
-		outport_.setData(0, true);
+		_outport.setData(0, true);
 		*/
 }
 

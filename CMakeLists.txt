@@ -19,6 +19,7 @@ include_directories(
 
 file(
 	GLOB PROJECT_SOURCES
+    "ipcc/ca_algorithms/basic.cpp"
 	"ipcc/ipcc.cpp"
 	)
 
