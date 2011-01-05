@@ -40,6 +40,7 @@ CAVolumeProcessor::CAVolumeProcessor()
       , _timer(0)
       , _eventHandler()
 	  , _target(0)
+      , _ipcvolume(0)
 {
 	addPort(_outport);
 
@@ -72,6 +73,8 @@ void CAVolumeProcessor::initialize() throw (VoreenException) {
     _shm_obj = new shared_memory_object(create_only , SHARED_MEMORY_NAME, read_write);
     _shm_obj->truncate(sizeof(ipc_volume_uint8));
     _region = new mapped_region(*_shm_obj, read_write);
+    ipc_volume_uint8 *mem = static_cast<ipc_volume_uint8*>(_region->get_address());
+    _ipcvolume = new(mem) ipc_volume_uint8();
 
     if (_timer) {
 		_timer->start(1000);
@@ -97,7 +100,8 @@ void CAVolumeProcessor::timerEvent(tgt::TimeEvent* te) {
             return;
         }
 
-		_target = new VolumeUInt8(ivec3(ipc_volume_uint8::size_x,
+		_target = new VolumeUInt8(
+                ivec3(ipc_volume_uint8::size_x,
                                         ipc_volume_uint8::size_y,
                                         ipc_volume_uint8::size_z));
 

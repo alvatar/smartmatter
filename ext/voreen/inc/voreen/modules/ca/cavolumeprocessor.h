@@ -76,7 +76,7 @@ private:
     IntProperty _dimension;
 
     VolumeUInt8 *_volume;
-
+ipc_volume_uint8 *_ipcvolume;
     boost::interprocess::shared_memory_object* _shm_obj;
 
     boost::interprocess::mapped_region* _region;
