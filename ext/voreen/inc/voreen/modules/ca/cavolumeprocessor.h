@@ -15,64 +15,80 @@
 
 #include "ipc_volume.hpp"
 
-namespace voreen {
+namespace boost
+{
+    namespace interprocess
+    {
+        class shared_memory_object;
+        class mapped_region;
+    }
+}
+
+namespace voreen
+{
 
 class VolumeHandle;
 template <class T> class RawVolumeAtomic;
 typedef RawVolumeAtomic<uint8_t> RawVolumeUInt8;
 
+class CAVolumeProcessor : public VolumeProcessor
+{
+public:
+	CAVolumeProcessor();
 
-class CAVolumeProcessor : public VolumeProcessor {
-	public:
-		CAVolumeProcessor();
+	virtual ~CAVolumeProcessor();
 
-		virtual ~CAVolumeProcessor();
+	virtual Processor* create() const;
 
-		virtual Processor* create() const;
+	virtual std::string getClassName() const
+    {
+		return "CAVolumeProcessor";
+	}
 
-		virtual std::string getClassName() const {
-			return "CAVolumeProcessor";
-		}
+	virtual std::string getCategory() const
+    {
+        return "Volume Processing";
+    }
 
-		virtual std::string getCategory() const {
-			return "Volume Processing";
-		}
+    virtual CodeState getCodeState() const
+    {
+        return CODE_STATE_STABLE;
+    }
 
-		virtual CodeState getCodeState() const {
-			return CODE_STATE_STABLE;
-		}
+    virtual std::string getProcessorInfo() const;
 
-		virtual std::string getProcessorInfo() const;
+    virtual void timerEvent(tgt::TimeEvent* te);
 
-		virtual void timerEvent(tgt::TimeEvent* te);
+protected:
+    virtual void process();
 
-	protected:
-		virtual void process();
+    virtual void deinitialize() throw (VoreenException);
 
-		virtual void deinitialize() throw (VoreenException);
+    void fillBox(VolumeUInt8* vds, tgt::ivec3 start, tgt::ivec3 end, uint8_t value);
 
-		void fillBox(VolumeUInt8* vds, tgt::ivec3 start, tgt::ivec3 end, uint8_t value);
+    virtual void initialize() throw (VoreenException);
 
-		virtual void initialize() throw (VoreenException);
+private:
+    VolumePort _outport;
 
-	private:
-		VolumePort _outport;
+    static const std::string _loggerCat; // category used in logging
 
-		static const std::string _loggerCat; // category used in logging
+    IntProperty _dimension;
 
-		IntProperty _dimension;
+    VolumeUInt8 *_volume;
 
-		//! Structure used for sharing data via IPC
-        ipc_volume_uint8 *_ipcvolume;
+    boost::interprocess::shared_memory_object* _shm_obj;
 
-		//! Structure for interpreting the shared data for visualization
-		VolumeUInt8 *_target;
+    boost::interprocess::mapped_region* _region;
 
-		//! Timer object
-		tgt::Timer* _timer;
+	//! Structure for interpreting the shared data for visualization
+    VolumeUInt8 *_target;
 
-		//! A local eventhanlde which is added to the timer
-		tgt::EventHandler _eventHandler;
+	//! Timer object
+    tgt::Timer* _timer;
+
+	//! A local eventhanlde which is added to the timer
+    tgt::EventHandler _eventHandler;
 };
 
 }   //namespace

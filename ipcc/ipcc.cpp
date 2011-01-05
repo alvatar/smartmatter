@@ -39,11 +39,13 @@ int main(int argc, char** argv)
     using namespace voreen;
 
     //Erase previous shared memory and schedule erasure on exit
+    /*
     struct shm_remove
     {
         shm_remove() { shared_memory_object::remove(SHARED_MEMORY_NAME); }
         ~shm_remove() { shared_memory_object::remove(SHARED_MEMORY_NAME); }
     } remover;
+    */
 
     // SIGINT callback
     (void) signal(SIGINT, signal_exit_program);
@@ -65,9 +67,13 @@ int main(int argc, char** argv)
 
     try
     {
+        /*
         shared_memory_object shm_obj(create_only , SHARED_MEMORY_NAME, read_write);
         shm_obj.truncate(sizeof(ipc_volume_uint8));
         mapped_region region(shm_obj, read_write);
+        */
+		shared_memory_object shm_obj(open_only, SHARED_MEMORY_NAME, read_write);
+		mapped_region region(shm_obj, read_write);
 
         ipc_volume_uint8 *mem = static_cast<ipc_volume_uint8*>(region.get_address());
         ipc_volume_uint8 *ipcvolume = new(mem) ipc_volume_uint8();
