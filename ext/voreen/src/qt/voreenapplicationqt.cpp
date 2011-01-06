@@ -100,7 +100,7 @@ void VoreenApplicationQt::init() {
     #elif defined(VRN_DEPLOYMENT)
         shaderPathQt_ = basePath_ + "/glsl";
     #else
-        shaderPathQt_ = basePath_ + "/src/qt/glsl";
+        shaderPathQt_ = basePath_ + "/ext/voreen/src/core/glsl/utils";
     #endif
 #endif
     }
@@ -110,6 +110,10 @@ void VoreenApplicationQt::initGL() throw (VoreenException) {
     VoreenApplication::initGL();
 
     ShdrMgr.addPath(getShaderPathQt());
+    // Modified by Álvaro
+    ShdrMgr.addPath("/data/projects/smartmatter/ext/voreen/src/core/glsl");
+    ShdrMgr.addPath("/data/projects/smartmatter/ext/voreen/src/core/glsl/modules");
+    //
 
 #ifdef VRN_MODULE_PYTHON
     if (PythonModule::getInstance() && PythonModule::getInstance()->isInitialized())

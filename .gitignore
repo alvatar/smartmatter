@@ -1,1 +1,5 @@
-work/*
+work/
+ext/tgt/work/
+tinyxml/tgt/work/
+voreenve-log.html
+

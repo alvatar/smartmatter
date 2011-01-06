@@ -56,14 +56,14 @@ int main(int argc, char* argv[]) {
     // and *before* any further OpenGL access
     vapp.initGL();
 
-    ShdrMgr.addPath("../ext/voreen/src/core/glsl/");
-    ShdrMgr.addPath("../ext/voreen/src/core/glsl/utils");
-    ShdrMgr.addPath("../ext/voreen/src/modules/base/glsl");
-    ShdrMgr.addPath("../ext/voreen/src/modules/base/glsl/image");
+    ShdrMgr.addPath("ext/voreen/src/core/glsl/");
+    ShdrMgr.addPath("ext/voreen/src/core/glsl/utils");
+    ShdrMgr.addPath("ext/voreen/src/modules/base/glsl");
+    ShdrMgr.addPath("ext/voreen/src/modules/base/glsl/image");
     // load workspace from disc
     Workspace* workspace = new Workspace();
     //workspace->load(VoreenApplication::app()->getWorkspacePath("/standard.vws"));
-    workspace->load("../data/workspaces/ca-standard.vws");
+    workspace->load("data/workspaces/ca-standard.vws");
 
     // initialize the network evaluator
     NetworkEvaluator* networkEvaluator = new NetworkEvaluator();

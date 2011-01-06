@@ -131,7 +131,7 @@ string findShaderPath(const string& basePath) {
 #elif VRN_DEPLOYMENT
     return basePath + "/glsl";
 #else
-    return basePath + "/src/core/glsl";
+    return basePath + "ext/voreen/src/core/glsl";
 #endif
 }
 
@@ -412,6 +412,7 @@ void VoreenApplication::initGL() throw (VoreenException) {
 #endif
     ShdrMgr.addPath(getShaderPath());
     ShdrMgr.addPath(getShaderPath("utils"));
+    ShdrMgr.addPath("/data/projects/smartmatter/ext/voreen/src/core/glsl/utils");
 
     // initialize modules
     for (size_t i=0; i<modules_.size(); i++) {

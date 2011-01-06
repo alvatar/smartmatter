@@ -2,26 +2,31 @@ cmake_minimum_required(VERSION 2.6 FATAL_ERROR)
 cmake_policy(SET CMP0015 NEW)
 project(voreen)
 
+find_package(Qt4 COMPONENTS QtCore QtGui QtOpenGL REQUIRED)
+set( QT_USE_QTOPENGL TRUE )  
+include( ${QT_USE_FILE} )
+
+add_definitions(-DLINUX)
 add_definitions(-DVRN_MODULE_BASE)
 add_definitions(-DVRN_CUSTOM_MODULE_CA)
 
-find_package(Qt4 COMPONENTS QtCore QtGui QtOpenGL REQUIRED)
-SET( QT_USE_QTOPENGL TRUE )  
-INCLUDE( ${QT_USE_FILE} )
+add_definitions(${QT_DEFINITIONS})
+add_definitions(-DQT_NO_DEBUG)
 
 include_directories(
+    "../../common"
 	".."
 	"../voreen/inc/"
 	"../jama/inc"
 	)
 
 link_directories(
-	"../tinyxml/dep"
-	"../tgt/dep"
+	"../tinyxml/work"
+	"../tgt/work"
 	)
 
 file(
-	GLOB PROJECT_SOURCES
+    GLOB PROJECT_CPP
 
 	./src/core/version.cpp
 	./src/core/voreenapplication.cpp
@@ -414,18 +419,18 @@ file(
 	./src/modules/base/processors/geometry/slicepositionrenderer.cpp
 	./src/modules/base/processors/geometry/depthpeelingprocessor.cpp
 	./src/modules/base/processors/geometry/geometryprocessor.cpp
-	#./src/modules/base/processors/plotting/graphplot.cpp
-	#./src/modules/base/processors/plotting/plotprocessor.cpp
-	#./src/modules/base/processors/plotting/plotdatagroup.cpp
-	#./src/modules/base/processors/plotting/plotdataselect.cpp
-	#./src/modules/base/processors/plotting/plotdatafitfunction.cpp
-	#./src/modules/base/processors/plotting/surfaceplot.cpp
-	#./src/modules/base/processors/plotting/plotfunctiondiscret.cpp
-	#./src/modules/base/processors/plotting/plotdataexport.cpp
-	#./src/modules/base/processors/plotting/barplot.cpp
-	#./src/modules/base/processors/plotting/lineplot.cpp
-	#./src/modules/base/processors/plotting/plotdatamerge.cpp
-	#./src/modules/base/processors/plotting/scatterplot.cpp
+    #./src/modules/base/processors/plotting/graphplot.cpp
+	./src/modules/base/processors/plotting/plotprocessor.cpp
+	./src/modules/base/processors/plotting/plotdatagroup.cpp
+	./src/modules/base/processors/plotting/plotdataselect.cpp
+	./src/modules/base/processors/plotting/plotdatafitfunction.cpp
+	./src/modules/base/processors/plotting/surfaceplot.cpp
+	./src/modules/base/processors/plotting/plotfunctiondiscret.cpp
+	./src/modules/base/processors/plotting/plotdataexport.cpp
+	./src/modules/base/processors/plotting/barplot.cpp
+	./src/modules/base/processors/plotting/lineplot.cpp
+	./src/modules/base/processors/plotting/plotdatamerge.cpp
+	./src/modules/base/processors/plotting/scatterplot.cpp
 	./src/modules/base/io/interfilevolumereader.cpp
 	./src/modules/base/io/multivolumereader.cpp
 	./src/modules/base/io/analyzevolumereader.cpp
@@ -452,26 +457,335 @@ file(
 	#./src/modules/pvm/pvmmodule.cpp
 
 	# Qt
-	./src/qt/voreenapplicationqt.cpp
-	./src/qt/progressdialog.cpp
-	./src/qt/widgets/labelingwidgetqt.cpp
-	./src/qt/pch_qt.h
-	./src/qt/qrc_vrn_qt.cpp
-	./src/qt/versionqt.cpp
+    ./src/qt/qrc_vrn_qt.cpp
+    ./src/qt/progressdialog.cpp
+    ./src/qt/helpbrowser.cpp
+    ./src/qt/widgets/customlabel.cpp
+    ./src/qt/widgets/volumecontainerwidget.cpp
+    ./src/qt/widgets/snapshotplugin.cpp
+    ./src/qt/widgets/clickablelabel.cpp
+    ./src/qt/widgets/consoleplugin.cpp
+    ./src/qt/widgets/voreentoolwindow.cpp
+    ./src/qt/widgets/eventpropertywidget.cpp
+    ./src/qt/widgets/choicelistcombobox.cpp
+    ./src/qt/widgets/shaderplugin.cpp
+    ./src/qt/widgets/processor/plotdataprocessorwidget.cpp
+    ./src/qt/widgets/processor/plotdatafitfunctionwidget.cpp
+    ./src/qt/widgets/processor/qprocessorwidget.cpp
+    ./src/qt/widgets/processor/plotdataselectwidget.cpp
+    ./src/qt/widgets/processor/qprocessorwidgetfactory.cpp
+    ./src/qt/widgets/processor/dynamicglslwidget.cpp
+    ./src/qt/widgets/processor/plotdatamergewidget.cpp
+    ./src/qt/widgets/processor/plotdatagroupwidget.cpp
+    ./src/qt/widgets/processor/imageanalyzerwidget.cpp
+    ./src/qt/widgets/processor/canvasrendererwidget.cpp
+    ./src/qt/widgets/transfunc/transfunctexturepainter.cpp
+    ./src/qt/widgets/transfunc/transfuncplugin.cpp
+    ./src/qt/widgets/transfunc/transfunceditorintensityramp.cpp
+    ./src/qt/widgets/transfunc/transfunceditor.cpp
+    ./src/qt/widgets/transfunc/transfuncmappingcanvasramp.cpp
+    ./src/qt/widgets/transfunc/colorpicker.cpp
+    ./src/qt/widgets/transfunc/transfunceditorintensity.cpp
+    ./src/qt/widgets/transfunc/doubleslider.cpp
+    ./src/qt/widgets/transfunc/transfunceditorintensitypet.cpp
+    ./src/qt/widgets/transfunc/transfunceditorintensitygradient.cpp
+    ./src/qt/widgets/transfunc/transfuncintensitygradientpainter.cpp
+    ./src/qt/widgets/transfunc/colorluminancepicker.cpp
+    ./src/qt/widgets/transfunc/histogrampainter.cpp
+    ./src/qt/widgets/transfunc/transfuncmappingcanvas.cpp
+    ./src/qt/widgets/volumeloadbutton.cpp
+    ./src/qt/widgets/keydetectorwidget.cpp
+    ./src/qt/widgets/plotting/plotentitysettingsdialog.cpp
+    ./src/qt/widgets/plotting/extendedtable.cpp
+    ./src/qt/widgets/plotting/plotdataextendedtablemodel.cpp
+    ./src/qt/widgets/plotting/plotselectiondialog.cpp
+    ./src/qt/widgets/plotting/plotpredicatedialog.cpp
+    ./src/qt/widgets/plotting/plotdatawidget.cpp
+    ./src/qt/widgets/plotting/plotdatasimpletablemodel.cpp
+    ./src/qt/widgets/plotting/plotselectiontablemodel.cpp
+    ./src/qt/widgets/plotting/plotselectionentrytablemodel.cpp
+    ./src/qt/widgets/lineeditresetwidget.cpp
+    ./src/qt/widgets/glslhighlighter.cpp
+    ./src/qt/widgets/expandableheaderbutton.cpp
+    ./src/qt/widgets/labelingwidgetqt.cpp
+    ./src/qt/widgets/rawvolumewidget.cpp
+    ./src/qt/widgets/propertylistwidget.cpp
+    ./src/qt/widgets/processorlistwidget.cpp
+    ./src/qt/widgets/property/plotpredicatepropertywidget.cpp
+    ./src/qt/widgets/property/vecpropertywidget.cpp
+    ./src/qt/widgets/property/floatvec3propertywidget.cpp
+    ./src/qt/widgets/property/filedialogpropertywidget.cpp
+    ./src/qt/widgets/property/grouppropertywidget.cpp
+    ./src/qt/widgets/property/buttonpropertywidget.cpp
+    ./src/qt/widgets/property/floatpropertywidget.cpp
+    ./src/qt/widgets/property/intpropertywidget.cpp
+    ./src/qt/widgets/property/boolpropertywidget.cpp
+    ./src/qt/widgets/property/plotdatapropertywidget.cpp
+    ./src/qt/widgets/property/volumehandlepropertywidget.cpp
+    ./src/qt/widgets/property/camerapropertywidget.cpp
+    ./src/qt/widgets/property/plotselectionpropertywidget.cpp
+    ./src/qt/widgets/property/fontpropertywidget.cpp
+    ./src/qt/widgets/property/qpropertywidget.cpp
+    ./src/qt/widgets/property/lightpropertywidget.cpp
+    ./src/qt/widgets/property/floatvec2propertywidget.cpp
+    ./src/qt/widgets/property/floatmat2propertywidget.cpp
+    ./src/qt/widgets/property/shaderpropertywidget.cpp
+    ./src/qt/widgets/property/stringpropertywidget.cpp
+    ./src/qt/widgets/property/floatmat4propertywidget.cpp
+    ./src/qt/widgets/property/intvec3propertywidget.cpp
+    ./src/qt/widgets/property/intvec4propertywidget.cpp
+    ./src/qt/widgets/property/colorpropertywidget.cpp
+    ./src/qt/widgets/property/matrixpropertywidget.cpp
+    ./src/qt/widgets/property/processorpropertieswidget.cpp
+    ./src/qt/widgets/property/optionpropertywidget.cpp
+    ./src/qt/widgets/property/floatmat3propertywidget.cpp
+    ./src/qt/widgets/property/qpropertywidgetwitheditorwindow.cpp
+    ./src/qt/widgets/property/plotzoompropertywidget.cpp
+    ./src/qt/widgets/property/camerawidget.cpp
+    ./src/qt/widgets/property/colormappropertywidget.cpp
+    ./src/qt/widgets/property/qpropertywidgetfactory.cpp
+    ./src/qt/widgets/property/propertyvectorwidget.cpp
+    ./src/qt/widgets/property/transfuncpropertywidget.cpp
+    ./src/qt/widgets/property/floatvec4propertywidget.cpp
+    ./src/qt/widgets/property/volumecollectionpropertywidget.cpp
+    ./src/qt/widgets/property/plotentitiespropertywidget.cpp
+    ./src/qt/widgets/property/intvec2propertywidget.cpp
+    ./src/qt/widgets/inputmappingdialog.cpp
+    ./src/qt/widgets/sliderspinboxwidget.cpp
+    ./src/qt/widgets/enterexitpushbutton.cpp
+    ./src/qt/widgets/rendertargetviewer.cpp
+    ./src/qt/widgets/lightwidget.cpp
+    ./src/qt/widgets/volumeviewhelper.cpp
+    ./src/qt/widgets/codeedit.cpp
+    ./src/qt/widgets/syntaxhighlighter.cpp
+    ./src/qt/widgets/animation/overviewwidget.cpp
+    ./src/qt/widgets/animation/propertytimelinewidget.cpp
+    ./src/qt/widgets/animation/timelinewidget.cpp
+    ./src/qt/widgets/animation/processortimelinewidget.cpp
+    ./src/qt/widgets/animation/animationeditor.cpp
+    ./src/qt/widgets/animation/nodechainwidget.cpp
+    ./src/qt/widgets/animation/templatepropertytimelinewidget.cpp
+    ./src/qt/widgets/animation/animationexportwidget.cpp
+    ./src/qt/widgets/animation/keyframegraphicsitem.cpp
+    ./src/qt/widgets/animation/currentframegraphicsitem.cpp
+    ./src/qt/widgets/animation/propertytimelineview.cpp
+    ./src/qt/versionqt.cpp
+    ./src/qt/aboutbox.cpp
+    ./src/qt/voreenapplicationqt.cpp
 
 	# Custom modules
 	./src/modules/ca/camodule.cpp
 	./src/modules/ca/cavolumeprocessor.cpp
 	)
 
+file(
+    GLOB MOC_HEADERS
+
+    inc/voreen/qt/helpbrowser.h
+    inc/voreen/qt/widgets/consoleplugin.h
+    inc/voreen/qt/widgets/inputmappingdialog.h
+    inc/voreen/qt/widgets/lineeditresetwidget.h
+    inc/voreen/qt/widgets/labelingwidgetqt.h
+    inc/voreen/qt/widgets/expandableheaderbutton.h
+    inc/voreen/qt/widgets/processor/qprocessorwidget.h
+    inc/voreen/qt/widgets/processor/plotdatagroupwidget.h
+    inc/voreen/qt/widgets/processor/imageanalyzerwidget.h
+    inc/voreen/qt/widgets/processor/canvasrendererwidget.h
+    inc/voreen/qt/widgets/processor/plotdataselectwidget.h
+    inc/voreen/qt/widgets/processor/dynamicglslwidget.h
+    inc/voreen/qt/widgets/processor/plotdatafitfunctionwidget.h
+    inc/voreen/qt/widgets/processor/plotdatamergewidget.h
+    inc/voreen/qt/widgets/processor/plotdataprocessorwidget.h
+    inc/voreen/qt/widgets/volumeloadbutton.h
+    inc/voreen/qt/widgets/transfunc/colorluminancepicker.h
+    inc/voreen/qt/widgets/transfunc/transfuncplugin.h
+    inc/voreen/qt/widgets/transfunc/histogrampainter.h
+    inc/voreen/qt/widgets/transfunc/transfunceditorintensitygradient.h
+    inc/voreen/qt/widgets/transfunc/transfuncmappingcanvas.h
+    inc/voreen/qt/widgets/transfunc/transfunceditorintensityramp.h
+    inc/voreen/qt/widgets/transfunc/transfuncintensitygradientpainter.h
+    inc/voreen/qt/widgets/transfunc/transfunceditorintensity.h
+    inc/voreen/qt/widgets/transfunc/transfunceditorintensitypet.h
+    inc/voreen/qt/widgets/transfunc/transfunceditor.h
+    inc/voreen/qt/widgets/transfunc/doubleslider.h
+    inc/voreen/qt/widgets/transfunc/colorpicker.h
+    inc/voreen/qt/widgets/transfunc/transfuncmappingcanvasramp.h
+    inc/voreen/qt/widgets/clickablelabel.h
+    inc/voreen/qt/widgets/plotting/plotselectiondialog.h
+    inc/voreen/qt/widgets/plotting/plotdatasimpletablemodel.h
+    inc/voreen/qt/widgets/plotting/plotentitysettingsdialog.h
+    inc/voreen/qt/widgets/plotting/plotdatawidget.h
+    inc/voreen/qt/widgets/plotting/plotselectionentrytablemodel.h
+    inc/voreen/qt/widgets/plotting/plotselectiontablemodel.h
+    inc/voreen/qt/widgets/plotting/plotpredicatedialog.h
+    inc/voreen/qt/widgets/codeedit.h
+    inc/voreen/qt/widgets/keydetectorwidget.h
+    inc/voreen/qt/widgets/lightwidget.h
+    inc/voreen/qt/widgets/sliderspinboxwidget.h
+    inc/voreen/qt/widgets/rendertargetviewer.h
+    inc/voreen/qt/widgets/eventpropertywidget.h
+    inc/voreen/qt/widgets/rawvolumewidget.h
+    inc/voreen/qt/widgets/volumecontainerwidget.h
+    inc/voreen/qt/widgets/processorlistwidget.h
+    inc/voreen/qt/widgets/shaderplugin.h
+    inc/voreen/qt/widgets/snapshotplugin.h
+    inc/voreen/qt/widgets/customlabel.h
+    inc/voreen/qt/widgets/property/volumecollectionpropertywidget.h
+    inc/voreen/qt/widgets/property/plotentitiespropertywidget.h
+    inc/voreen/qt/widgets/property/floatvec3propertywidget.h
+    inc/voreen/qt/widgets/property/plotzoompropertywidget.h
+    inc/voreen/qt/widgets/property/floatpropertywidget.h
+    inc/voreen/qt/widgets/property/lightpropertywidget.h
+    inc/voreen/qt/widgets/property/intvec2propertywidget.h
+    inc/voreen/qt/widgets/property/plotdatapropertywidget.h
+    inc/voreen/qt/widgets/property/boolpropertywidget.h
+    inc/voreen/qt/widgets/property/intvec4propertywidget.h
+    inc/voreen/qt/widgets/property/shaderpropertywidget.h
+    inc/voreen/qt/widgets/property/plotpredicatepropertywidget.h
+    inc/voreen/qt/widgets/property/plotselectionpropertywidget.h
+    inc/voreen/qt/widgets/property/qpropertywidget.h
+    inc/voreen/qt/widgets/property/stringpropertywidget.h
+    inc/voreen/qt/widgets/property/filedialogpropertywidget.h
+    inc/voreen/qt/widgets/property/intpropertywidget.h
+    inc/voreen/qt/widgets/property/volumehandlepropertywidget.h
+    inc/voreen/qt/widgets/property/optionpropertywidget.h
+    inc/voreen/qt/widgets/property/floatmat2propertywidget.h
+    inc/voreen/qt/widgets/property/transfuncpropertywidget.h
+    inc/voreen/qt/widgets/property/buttonpropertywidget.h
+    inc/voreen/qt/widgets/property/camerawidget.h
+    inc/voreen/qt/widgets/property/fontpropertywidget.h
+    inc/voreen/qt/widgets/property/colormappropertywidget.h
+    inc/voreen/qt/widgets/property/processorpropertieswidget.h
+    inc/voreen/qt/widgets/property/grouppropertywidget.h
+    inc/voreen/qt/widgets/property/propertyvectorwidget.h
+    inc/voreen/qt/widgets/property/intvec3propertywidget.h
+    inc/voreen/qt/widgets/property/matrixpropertywidget.h
+    inc/voreen/qt/widgets/property/floatmat3propertywidget.h
+    inc/voreen/qt/widgets/property/colorpropertywidget.h
+    inc/voreen/qt/widgets/property/floatvec4propertywidget.h
+    inc/voreen/qt/widgets/property/camerapropertywidget.h
+    inc/voreen/qt/widgets/property/floatmat4propertywidget.h
+    inc/voreen/qt/widgets/property/floatvec2propertywidget.h
+    inc/voreen/qt/widgets/propertylistwidget.h
+    inc/voreen/qt/widgets/voreentoolwindow.h
+    inc/voreen/qt/widgets/animation/timelinewidget.h
+    inc/voreen/qt/widgets/animation/propertytimelinewidget.h
+    inc/voreen/qt/widgets/animation/animationexportwidget.h
+    inc/voreen/qt/widgets/animation/animationeditor.h
+    inc/voreen/qt/widgets/animation/overviewwidget.h
+    inc/voreen/qt/widgets/animation/processortimelinewidget.h
+    inc/voreen/qt/widgets/animation/propertytimelineview.h
+    inc/voreen/qt/widgets/animation/keyframegraphicsitem.h
+    inc/voreen/qt/widgets/animation/nodechainwidget.h
+    inc/voreen/qt/widgets/enterexitpushbutton.h
+    inc/voreen/qt/aboutbox.h
+    #inc/voreen/modules/dicom/qt/dicomdialog.h
+    #inc/voreen/modules/python/qt/pythoneditor.h
+    )
+
+include_directories(
+    ${CMAKE_CURRENT_BINARY_DIR}
+    )
+
+qt4_wrap_ui(
+    PROJECT_CPP
+    ./src/qt/aboutbox.ui
+    )
+
+qt4_wrap_cpp(
+    PROJECT_CPP
+    ${MOC_HEADERS}
+    )
+
 add_library(
 	voreen
-	${PROJECT_SOURCES}
+    SHARED
+    ${UI_HEADERS}
+    ${MOC_CPP}
+    ${PROJECT_CPP}
 	)
 
 target_link_libraries(
 	voreen
+	GLU
+	GLEW
 	tgt
 	tinyxml
 	${QT_LIBRARIES}
+	)
+
+#
+# Voreenve
+project(voreen-editor)
+
+add_definitions(-DLINUX)
+add_definitions(${QT_DEFINITIONS})
+add_definitions(-DQT_NO_DEBUG)
+
+file(
+    GLOB MOC_HEADERS
+    voreenve/networkeditor/aggregationgraphicsitem.h
+    voreenve/networkeditor/textgraphicsitem.h
+    voreenve/networkeditor/openpropertylistbutton.h
+    voreenve/networkeditor/portgraphicsitem.h
+    voreenve/networkeditor/propertylistgraphicsitem.h
+    voreenve/networkeditor/linkdialogpropertygraphicsitem.h
+    voreenve/networkeditor/linkdialoggraphicsview.h
+    voreenve/networkeditor/widgetindicatorbutton.h
+    voreenve/networkeditor/propertylinkdialog.h
+    voreenve/networkeditor/processorgraphicsitem.h
+    voreenve/networkeditor/propertygraphicsitem.h
+    voreenve/networkeditor/networkeditor.h
+    voreenve/networkeditor/rootgraphicsitem.h
+    voreenve/voreenmainwindow.h
+    voreenve/voreenvisualization.h
+    )
+
+qt4_wrap_cpp(
+    MOC_CPP
+    ${MOC_HEADERS}
+    )
+
+file(
+    GLOB PROJECT_CPP
+    voreenve/voreenvisualization.cpp
+    voreenve/qrc_vrn_app.cpp
+    voreenve/main.cpp
+    voreenve/voreenmainwindow.cpp
+    voreenve/networkeditor/networkeditor.cpp
+    voreenve/networkeditor/progressbargraphicsitem.cpp
+    voreenve/networkeditor/linkarrowgraphicsitem.cpp
+    voreenve/networkeditor/arrowgraphicsitem.cpp
+    voreenve/networkeditor/linkdialogpropertygraphicsitem.cpp
+    voreenve/networkeditor/linkarrowgraphicsitemstub.cpp
+    voreenve/networkeditor/propertylistgraphicsitem.cpp
+    voreenve/networkeditor/portarrowgraphicsitem.cpp
+    voreenve/networkeditor/textgraphicsitem.cpp
+    voreenve/networkeditor/linkdialoggraphicsview.cpp
+    voreenve/networkeditor/portgraphicsitem.cpp
+    voreenve/networkeditor/linkdialogprocessorgraphicsitem.cpp
+    voreenve/networkeditor/rootgraphicsitem.cpp
+    voreenve/networkeditor/propertygraphicsitem.cpp
+    voreenve/networkeditor/widgetindicatorbutton.cpp
+    voreenve/networkeditor/arrowheadselectiongraphicsitem.cpp
+    voreenve/networkeditor/linkdialogarrowgraphicsitem.cpp
+    voreenve/networkeditor/aggregationgraphicsitem.cpp
+    voreenve/networkeditor/openpropertylistbutton.cpp
+    voreenve/networkeditor/propertylinkdialog.cpp
+    voreenve/networkeditor/processorgraphicsitem.cpp
+	)
+
+add_executable(
+	voreen-editor
+    ${PROJECT_CPP}
+    ${MOC_CPP}
+	)
+
+target_link_libraries(
+	voreen-editor
+    voreen
+	GL
+	GLU
+	GLEW
+    ${QT_LIBRARIES}
 	)

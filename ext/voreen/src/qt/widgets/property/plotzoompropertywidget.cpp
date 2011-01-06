@@ -110,6 +110,7 @@ PlotZoomPropertyWidget::PlotZoomPropertyWidget(PlotSelectionProperty* prop, QWid
 }
 
 void PlotZoomPropertyWidget::updateFromProperty() {
+        /*
     if (! property_->get().empty()) {
         spXlow_->setValue(property_->top().xZoom_.getLeft());
         spXhigh_->setValue(property_->top().xZoom_.getRight());
@@ -129,19 +130,24 @@ void PlotZoomPropertyWidget::updateFromProperty() {
         spZlow_->setVisible(false);
         spZhigh_->setVisible(false);
     }
+        */
 }
 
 void PlotZoomPropertyWidget::btnPushClicked() {
+    /*
     if (checkSanityOfInput()) {
         property_->push(PlotZoomState(Interval<plot_t>(spXlow_->value(), spXhigh_->value()),
                                       Interval<plot_t>(spYlow_->value(), spYhigh_->value()),
                                       Interval<plot_t>(spZlow_->value(), spZhigh_->value())));
     }
+    */
 }
 
 void PlotZoomPropertyWidget::btnPopClicked() {
+    /*
     if (property_->size() > 1)
         property_->pop();
+        */
 }
 
 bool PlotZoomPropertyWidget::checkSanityOfInput() {
