@@ -3,6 +3,6 @@
 
 #include "voreen/core/datastructures/volume/volumeatomic.h"
 
-void basic_algorithm(voreen::VolumeUInt8*);
+void basic_algorithm(voreen::VolumeUInt16*);
 
 #endif

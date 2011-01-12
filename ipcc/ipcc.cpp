@@ -26,7 +26,7 @@ void signal_exit_program(int sig)
 
 //! Calculate next step of the 3d CA
 //!
-void ca_step( void (*f)(voreen::VolumeUInt8*), voreen::VolumeUInt8* v)
+void ca_step( void (*f)(voreen::VolumeUInt16*), voreen::VolumeUInt16* v)
 {
     f(v);
 }
@@ -61,11 +61,11 @@ int main(int argc, char** argv)
 		shared_memory_object shm_obj(open_only, SHARED_MEMORY_NAME, read_write);
 		mapped_region region(shm_obj, read_write);
 
-        ipc_volume_uint8 *ipcvolume = static_cast<ipc_volume_uint8*>(region.get_address());
-        VolumeUInt8* target = new VolumeUInt8( ipcvolume->data,
-                                               ivec3(ipc_volume_uint8::size_x,
-                                               ipc_volume_uint8::size_y,
-                                               ipc_volume_uint8::size_z) );
+        ipc_volume_uint16 *ipcvolume = static_cast<ipc_volume_uint16*>(region.get_address());
+        VolumeUInt16* target = new VolumeUInt16( ipcvolume->data,
+                                                 ivec3(ipc_volume_uint16::size_x,
+                                                 ipc_volume_uint16::size_y,
+                                                 ipc_volume_uint16::size_z) );
         while(true)
         {
             scoped_lock<interprocess_mutex> lock(ipcvolume->header.mutex);

@@ -41,5 +41,6 @@ struct ipc_volume
 };
 
 typedef ipc_volume<uint8_t> ipc_volume_uint8;
+typedef ipc_volume<uint16_t> ipc_volume_uint16;
 
 #endif

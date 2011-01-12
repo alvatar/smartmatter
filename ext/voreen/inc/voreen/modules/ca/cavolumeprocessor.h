@@ -29,7 +29,7 @@ namespace voreen
 
 class VolumeHandle;
 template <class T> class RawVolumeAtomic;
-typedef RawVolumeAtomic<uint8_t> RawVolumeUInt8;
+typedef RawVolumeAtomic<uint16_t> RawVolumeUInt16;
 
 class CAVolumeProcessor : public VolumeProcessor
 {
@@ -64,7 +64,7 @@ protected:
 
     virtual void deinitialize() throw (VoreenException);
 
-    void fillBox(VolumeUInt8* vds, tgt::ivec3 start, tgt::ivec3 end, uint8_t value);
+    void fillBox(VolumeUInt16* vds, tgt::ivec3 start, tgt::ivec3 end, uint16_t value);
 
     virtual void initialize() throw (VoreenException);
 
@@ -75,14 +75,14 @@ private:
 
     IntProperty _dimension;
 
-    VolumeUInt8 *_volume;
-ipc_volume_uint8 *_ipcvolume;
+    ipc_volume_uint16 *_ipcvolume;
+
     boost::interprocess::shared_memory_object* _shm_obj;
 
     boost::interprocess::mapped_region* _region;
 
 	//! Structure for interpreting the shared data for visualization
-    VolumeUInt8 *_target;
+    VolumeUInt16 *_target;
 
 	//! Timer object
     tgt::Timer* _timer;

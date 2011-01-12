@@ -45,12 +45,12 @@ namespace voxel_state
 
 using namespace voreen;
 
-void basic_algorithm(VolumeUInt8* w)
+void basic_algorithm(VolumeUInt16* w)
 {
-    for(int k=0; k<ipc_volume_uint8::size_z; k++)
-        for(int j=0; j<ipc_volume_uint8::size_y; j++)
-            for(int i=0; i<ipc_volume_uint8::size_x; i++)
+    for(int k=0; k<ipc_volume_uint16::size_z; k++)
+        for(int j=0; j<ipc_volume_uint16::size_y; j++)
+            for(int i=0; i<ipc_volume_uint16::size_x; i++)
             {
-                w->voxel(i,j,k) = rand()%255;
+                w->voxel(i,j,k) = rand()%0xffff;
             }
 }

@@ -51,10 +51,11 @@ CAVolumeProcessor::CAVolumeProcessor()
 }
 
 CAVolumeProcessor::~CAVolumeProcessor() {
+    if(_timer) { delete _timer; _timer = 0; }
     using namespace boost::interprocess;
     shared_memory_object::remove(SHARED_MEMORY_NAME);
-    if(_shm_obj) delete _shm_obj; _shm_obj = 0;
-    if(_region) delete _region; _region = 0;
+    if(_shm_obj) { delete _shm_obj; _shm_obj = 0; }
+    if(_region) { delete _region; _region = 0; }
 }
 
 Processor* CAVolumeProcessor::create() const {
@@ -62,7 +63,7 @@ Processor* CAVolumeProcessor::create() const {
 }
 
 std::string CAVolumeProcessor::getProcessorInfo() const {
-	return std::string("Generates an 8-bit dataset from a Cellular Automata");
+	return std::string("Generates an 16-bit dataset from a Cellular Automata");
 }
 
 void CAVolumeProcessor::initialize() throw (VoreenException) {
@@ -71,10 +72,10 @@ void CAVolumeProcessor::initialize() throw (VoreenException) {
     using namespace boost::interprocess;
     shared_memory_object::remove(SHARED_MEMORY_NAME);
     _shm_obj = new shared_memory_object(create_only , SHARED_MEMORY_NAME, read_write);
-    _shm_obj->truncate(sizeof(ipc_volume_uint8));
+    _shm_obj->truncate(sizeof(ipc_volume_uint16));
     _region = new mapped_region(*_shm_obj, read_write);
-    ipc_volume_uint8 *mem = static_cast<ipc_volume_uint8*>(_region->get_address());
-    _ipcvolume = new(mem) ipc_volume_uint8();
+    ipc_volume_uint16 *mem = static_cast<ipc_volume_uint16*>(_region->get_address());
+    _ipcvolume = new(mem) ipc_volume_uint16();
 
     if (_timer) {
 		_timer->start(1000);
@@ -93,22 +94,22 @@ void CAVolumeProcessor::deinitialize() throw (VoreenException) {
 void CAVolumeProcessor::timerEvent(tgt::TimeEvent* te) {
     using namespace boost::interprocess;
 	try {
-        ipc_volume_uint8 *ipcvolume = static_cast<ipc_volume_uint8*>(_region->get_address());
+        ipc_volume_uint16 *ipcvolume = static_cast<ipc_volume_uint16*>(_region->get_address());
 
 		scoped_lock<interprocess_mutex> lock(ipcvolume->header.mutex);
         if(!ipcvolume->header.fresh_data) {
             return;
         }
 
-		_target = new VolumeUInt8(
-                ivec3(ipc_volume_uint8::size_x,
-                                        ipc_volume_uint8::size_y,
-                                        ipc_volume_uint8::size_z));
+		_target = new VolumeUInt16(
+                ivec3(ipc_volume_uint16::size_x,
+                                        ipc_volume_uint16::size_y,
+                                        ipc_volume_uint16::size_z));
 
-		uint8_t *p = ipcvolume->data;
-		for(int k=0; k<ipc_volume_uint8::size_z; k++) {
-			for(int j=0; j<ipc_volume_uint8::size_y; j++) {
-				for(int i=0; i<ipc_volume_uint8::size_x; i++) {
+		uint16_t *p = ipcvolume->data;
+		for(int k=0; k<ipc_volume_uint16::size_z; k++) {
+			for(int j=0; j<ipc_volume_uint16::size_y; j++) {
+				for(int i=0; i<ipc_volume_uint16::size_x; i++) {
 					_target->voxel(i,j,k) = *p++;
 				}
 			}
@@ -139,7 +140,7 @@ void CAVolumeProcessor::process() {
 	dimensions.y = dimensions.x;
 	dimensions.z = dimensions.x;
 
-	VolumeUInt8* target = new VolumeUInt8(dimensions);
+	VolumeUInt16* target = new VolumeUInt16(dimensions);
 
 	outputVolume = target;
 
@@ -150,7 +151,7 @@ void CAVolumeProcessor::process() {
 	int thickness = s / 15;
 	int border = 3;
 
-	uint8_t white = 200;
+	uint16_t white = 200;
 
 	LINFO("Cellular Automata with dimensions: " << dimensions);
 
@@ -165,7 +166,7 @@ void CAVolumeProcessor::process() {
 		*/
 }
 
-void CAVolumeProcessor::fillBox(VolumeUInt8* vds, ivec3 start, ivec3 end, uint8_t value) {
+void CAVolumeProcessor::fillBox(VolumeUInt16* vds, ivec3 start, ivec3 end, uint16_t value) {
 	ivec3 i;
 	for (i.x = start.x; i.x < end.x; i.x++) {
 		for (i.y = start.y; i.y < end.y; i.y++) {
