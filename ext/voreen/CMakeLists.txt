@@ -3,21 +3,45 @@ cmake_policy(SET CMP0015 NEW)
 project(voreen)
 
 find_package(Qt4 COMPONENTS QtCore QtGui QtOpenGL REQUIRED)
+find_package(Freetype REQUIRED)
+find_package(DevIL REQUIRED)
 set( QT_USE_QTOPENGL TRUE )  
 include( ${QT_USE_FILE} )
 
+add_definitions(-pipe)
+add_definitions(-fPIC)
+add_definitions(-D_REENTRANT)
 add_definitions(-DLINUX)
+add_definitions(-DUNIX)
 add_definitions(-DVRN_MODULE_BASE)
+#add_definitions(-DVRN_MODULE_CONNECTEDCOMPONENTS)
 add_definitions(-DVRN_CUSTOM_MODULE_CA)
+add_definitions(-DVRN_WITH_DEVIL)
+add_definitions(-DVRN_WITH_FONTRENDERING)
+add_definitions(-DVRN_WITH_ZLIB)
+add_definitions(-DTGT_WITHOUT_DEFINES)
+add_definitions(-DTGT_HAS_DEVIL)
+add_definitions(-DTGT_HAS_FREETYPE)
+add_definitions(-DTGT_HAS_FTGL)
+add_definitions(-DTGT_HAS_ZLIB)
+add_definitions(-DTGT_HAS_ZIP)
 
+add_definitions(-O3)
 add_definitions(${QT_DEFINITIONS})
 add_definitions(-DQT_NO_DEBUG)
+#add_definitions(-DTGT_DEBUG)
+#add_definitions(-DVRN_DEBUG)
+#add_definitions(-D_DEBUG)
+
+#add_definitions(-ggdb)
 
 include_directories(
     "../../common"
 	".."
 	"../voreen/inc/"
+    #"../voreen/inc/voreen/modules/connectedcomponents/"
 	"../jama/inc"
+    ${FREETYPE_INCLUDE_DIRS}
 	)
 
 link_directories(
@@ -299,9 +323,9 @@ file(
 	#./src/modules/flowreen/converter/raw2flow/raw2flowconverter.cpp
 	#./src/modules/flowreen/converter/raw2flow/raw2flow.cpp
 	#./src/modules/flowreen/converter/raw2flow/stringutility.cpp
-	#./src/modules/connectedcomponents/connectedcomponents3d.cpp
-	#./src/modules/connectedcomponents/connectedcomponentsmodule.cpp
-	#./src/modules/connectedcomponents/connectedcomponents2d.cpp
+    #./src/modules/connectedcomponents/connectedcomponents3d.cpp
+    #./src/modules/connectedcomponents/connectedcomponentsmodule.cpp
+    #./src/modules/connectedcomponents/connectedcomponents2d.cpp
 	./src/modules/base/processors/utility/imagesequenceloopfinalizer.cpp
 	./src/modules/base/processors/utility/distancemeasure.cpp
 	./src/modules/base/processors/utility/volumeinformation.cpp
@@ -711,6 +735,8 @@ target_link_libraries(
 	GLEW
 	tgt
 	tinyxml
+    ${IL_LIBRARIES}
+    ${FREETYPE_LIBRARIES}
 	${QT_LIBRARIES}
 	)
 
@@ -718,9 +744,31 @@ target_link_libraries(
 # Voreenve
 project(voreen-editor)
 
+add_definitions(-pipe)
+add_definitions(-fPIC)
+add_definitions(-D_REENTRANT)
 add_definitions(-DLINUX)
+add_definitions(-DUNIX)
+add_definitions(-DVRN_MODULE_BASE)
+#add_definitions(-DVRN_MODULE_CONNECTEDCOMPONENTS)
+add_definitions(-DVRN_CUSTOM_MODULE_CA)
+add_definitions(-DVRN_WITH_DEVIL)
+add_definitions(-DVRN_WITH_FONTRENDERING)
+add_definitions(-DVRN_WITH_ZLIB)
+add_definitions(-DTGT_WITHOUT_DEFINES)
+add_definitions(-DTGT_HAS_DEVIL)
+add_definitions(-DTGT_HAS_FREETYPE)
+add_definitions(-DTGT_HAS_FTGL)
+add_definitions(-DTGT_HAS_ZLIB)
+add_definitions(-DTGT_HAS_ZIP)
+
+add_definitions(-O3)
 add_definitions(${QT_DEFINITIONS})
 add_definitions(-DQT_NO_DEBUG)
+#add_definitions(-DTGT_DEBUG)
+#add_definitions(-DVRN_DEBUG)
+#add_definitions(-D_DEBUG)
+#add_definitions(-ggdb)
 
 file(
     GLOB MOC_HEADERS

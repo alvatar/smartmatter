@@ -427,6 +427,7 @@ void RenderPort::saveToImage(const std::string& filename) throw (VoreenException
     // put pixels into IL-Image
     ilTexImage(size.x, size.y, 1, 4, IL_RGBA, IL_UNSIGNED_SHORT, colorBuffer);
     ilEnable(IL_FILE_OVERWRITE);
+    ilResetWrite();
     ILboolean success = ilSaveImage(const_cast<char*>(filename.c_str()));
     ilDeleteImages(1, &img);
 

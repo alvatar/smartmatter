@@ -352,6 +352,7 @@ BaseModule::BaseModule()
     // shader paths
     addShaderPath(getModulesPath("base/glsl"));
     addShaderPath("/data/projects/smartmatter/ext/voreen/src/modules/base/glsl/");
+    addShaderPath("/data/projects/smartmatter/ext/voreen/src/qt/glsl");
 }
 
 void BaseModule::initialize() throw (VoreenException) {

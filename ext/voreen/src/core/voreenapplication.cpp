@@ -131,7 +131,7 @@ string findShaderPath(const string& basePath) {
 #elif VRN_DEPLOYMENT
     return basePath + "/glsl";
 #else
-    return basePath + "ext/voreen/src/core/glsl";
+    return basePath + "/ext/voreen/src/core/glsl";
 #endif
 }
 

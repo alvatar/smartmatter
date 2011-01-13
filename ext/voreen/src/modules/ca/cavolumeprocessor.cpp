@@ -52,6 +52,7 @@ CAVolumeProcessor::CAVolumeProcessor()
 
 CAVolumeProcessor::~CAVolumeProcessor() {
     if(_timer) { delete _timer; _timer = 0; }
+
     using namespace boost::interprocess;
     shared_memory_object::remove(SHARED_MEMORY_NAME);
     if(_shm_obj) { delete _shm_obj; _shm_obj = 0; }
@@ -86,6 +87,7 @@ void CAVolumeProcessor::initialize() throw (VoreenException) {
 }
 
 void CAVolumeProcessor::deinitialize() throw (VoreenException) {
+    _timer->stop();
 	_outport.deleteVolume();
 
 	VolumeProcessor::deinitialize();
@@ -101,10 +103,9 @@ void CAVolumeProcessor::timerEvent(tgt::TimeEvent* te) {
             return;
         }
 
-		_target = new VolumeUInt16(
-                ivec3(ipc_volume_uint16::size_x,
-                                        ipc_volume_uint16::size_y,
-                                        ipc_volume_uint16::size_z));
+		_target = new VolumeUInt16( ivec3(ipc_volume_uint16::size_x,
+                                          ipc_volume_uint16::size_y,
+                                          ipc_volume_uint16::size_z) );
 
 		uint16_t *p = ipcvolume->data;
 		for(int k=0; k<ipc_volume_uint16::size_z; k++) {
@@ -116,7 +117,6 @@ void CAVolumeProcessor::timerEvent(tgt::TimeEvent* te) {
 		}
         ipcvolume->header.fresh_data = false;
         ipcvolume->header.cond_processing_visuals.notify_one();
-        std::cout << "Data read" << std::endl;
 
 		if (_target){
 			_outport.setData(new VolumeHandle(_target), true);

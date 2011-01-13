@@ -7,6 +7,8 @@ cmake_policy(SET CMP0015 NEW)
 
 project(ipcc)
 
+add_definitions(-O3)
+
 # Options
 set(FORK_IPVR FALSE)
 
@@ -50,6 +52,8 @@ target_link_libraries(
 ###############################################################################
 
 project(ipvr)
+
+add_definitions(-O3)
 
 include_directories(
 	"common"

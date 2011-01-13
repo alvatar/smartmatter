@@ -9,6 +9,7 @@ add_definitions(-DLINUX)
 add_definitions(${QT_DEFINITIONS})
 add_definitions(-DQT_NO_DEBUG)
 add_definitions(-fPIC)
+add_definitions(-O3)
 
 include_directories("..")
 

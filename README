@@ -1,0 +1,13 @@
+Notes on customization of Voreen:
+
+Added line
+    ilResetWrite();
+in 430:
+    ilTexImage(size.x, size.y, 1, 4, IL_RGBA, IL_UNSIGNED_SHORT, colorBuffer);
+    ilEnable(IL_FILE_OVERWRITE);
+    ilResetWrite();
+    ILboolean success = ilSaveImage(const_cast<char*>(filename.c_str()));
+    ilDeleteImages(1, &img);
+of ../ext/voreen/src/core/ports/renderport.cpp
+due to an strange bug caused by undefined iopenw function in DevIL library
+IMPORTANT: it would be better if this is executed statically

@@ -78,7 +78,6 @@ int main(int argc, char** argv)
 
             // notify the client that the CA processing is finished
             ipcvolume->header.fresh_data = true;
-            std::cout << "Step calculated" << std::endl;
             // mutex is released here
         }
     }
