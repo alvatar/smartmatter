@@ -7,10 +7,8 @@
 #include "tgt/event/eventhandler.h"
 
 #include "voreen/core/processors/volumeprocessor.h"
-#include "voreen/core/properties/optionproperty.h"
 #include "voreen/core/properties/intproperty.h"
-#include "voreen/core/properties/buttonproperty.h"
-#include "voreen/core/properties/boolproperty.h"
+#include "voreen/core/properties/stringproperty.h"
 #include "voreen/core/datastructures/volume/volumeatomic.h"
 
 #include "ipc_volume.hpp"
@@ -68,6 +66,10 @@ protected:
 
     virtual void initialize() throw (VoreenException);
 
+    void changeCheckTime();
+
+    void createNewSharedMemory();
+
 private:
     VolumePort _outport;
 
@@ -75,11 +77,21 @@ private:
 
     IntProperty _dimension;
 
+    IntProperty _timer_interval;
+
+    static const uint _default_timer_interval;
+
+    StringProperty _shared_memory_name;
+
+    std::string _current_shared_memory_name;
+
     ipc_volume_uint16 *_ipcvolume;
 
     boost::interprocess::shared_memory_object* _shm_obj;
 
     boost::interprocess::mapped_region* _region;
+
+    static uint _count_instances;
 
 	//! Structure for interpreting the shared data for visualization
     VolumeUInt16 *_target;

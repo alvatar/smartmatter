@@ -92,14 +92,12 @@ void basic_algorithm(VolumeUInt16* w)
         case find_entry:
         cout << "Step: find entry" << endl;
         move_voxel(w, o.conquistador, ivec3(rand()%2, rand()%2, rand()%2));
-        /*
         for(int k=0; k<ipc_volume_uint16::size_z; k++)
             for(int j=0; j<ipc_volume_uint16::size_y; j++)
                 for(int i=0; i<ipc_volume_uint16::size_x; i++)
                 {
                     w->voxel(i,j,k) = rand()%0xffff;
                 }
-                */
         if(o.entry_found) o.current_main_phase++;
         break;
 

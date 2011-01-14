@@ -123,8 +123,8 @@ void addAllModules(VoreenApplication* vapp) {
         vapp->addModule(new TiffModule());
     #endif
 
-    #ifdef VRN_CUSTOM_MODULE_CA
-        vapp->addModule(new CAModule());
+    #ifdef VRN_CUSTOM_MODULE_IPC
+        vapp->addModule(new IPCModule());
     #endif
 
 }

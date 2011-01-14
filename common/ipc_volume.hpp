@@ -8,7 +8,7 @@
 #include "tgt/types.h"
 #include "tgt/vector.h"
 
-#define SHARED_MEMORY_NAME "volume_shared_memory"
+#define SHARED_MEMORY_DEFAULT_NAME "volume_shared_memory"
 
 struct ipc_volume_header
 {

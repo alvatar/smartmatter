@@ -10,98 +10,135 @@
 
 #include "voreen/modules/ipc/ipcvolumesource.h"
 
-namespace voreen {
+namespace voreen
+{
 
-//! Extends VolumeAtomic to allow redefinition of the internal data, avoiding re-creation
-//! of VolumeAtomics for every updateIPC call
-/*
-template <class T>
-class RawVolumeAtomic : public VolumeAtomic<T> {
-public:
-    RawVolumeAtomic(T* data
-                    ,const tgt::ivec3& dimensions
-                    ,const tgt::vec3& spacing = tgt::vec3(1.f)
-                    ,const tgt::mat4& transformation = tgt::mat4::identity
-                    ,int bitsStored = VolumeAtomic<T>::BITS_PER_VOXEL)
-		: VolumeAtomic<T>(data, dimensions, spacing, transformation, bitsStored) {}
+using namespace boost::interprocess;
 
-	virtual void setData(T* const data) {
-		this->data_ = data;
-	}
-
-
-};
-*/
+//! Static data
+//
 
 const std::string IPCVolumeSource::_loggerCat("voreen.IPCVolumeSource");
 
+const uint IPCVolumeSource::_default_timer_interval(1000);
+
+uint IPCVolumeSource::_count_instances = 0;
+
+//! IPCVolumeSource
+//
 IPCVolumeSource::IPCVolumeSource()
 	: VolumeProcessor()
 	  , _outport(Port::OUTPORT, "volumehandle.output", 0)
-	  , _dimension("dimension", "Dimension", 64, 2, 1024, Processor::VALID) 
+	  , _dimension("dimension", "Dimension", 64, 2, 512, Processor::VALID) 
+	  , _timer_interval("timer_interval", "Timer Interval", _default_timer_interval, 40, 5000, Processor::VALID) 
+      , _current_shared_memory_name(SHARED_MEMORY_DEFAULT_NAME)
+	  , _shared_memory_name("shared_memory_name", "Shared memory name", SHARED_MEMORY_DEFAULT_NAME, Processor::VALID)
       , _timer(0)
       , _eventHandler()
 	  , _target(0)
       , _ipcvolume(0)
 {
+    _count_instances++;
 	addPort(_outport);
 
-	addProperty(_dimension);
+	addProperty(&_dimension);
+	addProperty(&_timer_interval);
+	addProperty(&_shared_memory_name);
+
+    _timer_interval.onChange(CallMemberAction<IPCVolumeSource>(this, &IPCVolumeSource::changeCheckTime));
+    _shared_memory_name.onChange(CallMemberAction<IPCVolumeSource>(this, &IPCVolumeSource::createNewSharedMemory));
 
     _eventHandler.addListenerToBack(this);
     _timer = VoreenApplication::app()->createTimer(&_eventHandler);
 }
 
-IPCVolumeSource::~IPCVolumeSource() {
+IPCVolumeSource::~IPCVolumeSource()
+{
     if(_timer) { delete _timer; _timer = 0; }
 
-    using namespace boost::interprocess;
-    shared_memory_object::remove(SHARED_MEMORY_NAME);
+    shared_memory_object::remove(_current_shared_memory_name.c_str());
     if(_shm_obj) { delete _shm_obj; _shm_obj = 0; }
     if(_region) { delete _region; _region = 0; }
+
+    _count_instances--;
 }
 
-Processor* IPCVolumeSource::create() const {
+Processor* IPCVolumeSource::create() const
+{
 	return new IPCVolumeSource();
 }
 
-std::string IPCVolumeSource::getProcessorInfo() const {
-	return std::string("Generates an 16-bit dataset from a Cellular Automata");
+std::string IPCVolumeSource::getProcessorInfo() const
+{
+	return std::string("Generates an 16-bit dataset updated periodically via IPC");
 }
 
-void IPCVolumeSource::initialize() throw (VoreenException) {
+void IPCVolumeSource::initialize() throw (VoreenException)
+{
 	Processor::initialize();
 
-    using namespace boost::interprocess;
-    shared_memory_object::remove(SHARED_MEMORY_NAME);
-    _shm_obj = new shared_memory_object(create_only , SHARED_MEMORY_NAME, read_write);
-    _shm_obj->truncate(sizeof(ipc_volume_uint16));
-    _region = new mapped_region(*_shm_obj, read_write);
-    ipc_volume_uint16 *mem = static_cast<ipc_volume_uint16*>(_region->get_address());
-    _ipcvolume = new(mem) ipc_volume_uint16();
+    // If there is more than one instance, change wait to generate until a change in properties is made
+    // TODO: also a check for same name should be performed
+    if(_count_instances)
+    {
+        shared_memory_object::remove(_current_shared_memory_name.c_str());
+        _shm_obj = new shared_memory_object(create_only , _current_shared_memory_name.c_str(), read_write);
+        _shm_obj->truncate(sizeof(ipc_volume_uint16));
+        _region = new mapped_region(*_shm_obj, read_write);
+        ipc_volume_uint16 *mem = static_cast<ipc_volume_uint16*>(_region->get_address());
+        _ipcvolume = new(mem) ipc_volume_uint16();
+    }
 
-    if (_timer) {
-		_timer->start(1000);
-    } else {
+    if (_timer)
+    {
+		_timer->start(_default_timer_interval);
+    }
+    else
+    {
         LWARNING("No timer.");
         return;
 	}
 }
 
-void IPCVolumeSource::deinitialize() throw (VoreenException) {
+void IPCVolumeSource::deinitialize() throw (VoreenException)
+{
     _timer->stop();
 	_outport.deleteVolume();
 
 	VolumeProcessor::deinitialize();
 }
 
-void IPCVolumeSource::timerEvent(tgt::TimeEvent* te) {
-    using namespace boost::interprocess;
-	try {
+void IPCVolumeSource::changeCheckTime()
+{
+    _timer->setTickTime(_timer_interval.get());
+}
+
+void IPCVolumeSource::createNewSharedMemory()
+{
+    // Remove previous shared memory
+    shared_memory_object::remove(_current_shared_memory_name.c_str());
+    if(_shm_obj) { delete _shm_obj; _shm_obj = 0; }
+    if(_region) { delete _region; _region = 0; }
+
+    // Create new shared memory
+    _current_shared_memory_name = _shared_memory_name.get();
+    shared_memory_object::remove(_current_shared_memory_name.c_str());
+    _shm_obj = new shared_memory_object(create_only , _current_shared_memory_name.c_str(), read_write);
+    _shm_obj->truncate(sizeof(ipc_volume_uint16));
+    _region = new mapped_region(*_shm_obj, read_write);
+    ipc_volume_uint16 *mem = static_cast<ipc_volume_uint16*>(_region->get_address());
+    _ipcvolume = new(mem) ipc_volume_uint16();
+}
+
+void IPCVolumeSource::timerEvent(tgt::TimeEvent* te)
+{
+	try
+    {
         ipc_volume_uint16 *ipcvolume = static_cast<ipc_volume_uint16*>(_region->get_address());
 
 		scoped_lock<interprocess_mutex> lock(ipcvolume->header.mutex);
-        if(!ipcvolume->header.fresh_data) {
+        if(!ipcvolume->header.fresh_data)
+        {
             return;
         }
 
@@ -110,30 +147,36 @@ void IPCVolumeSource::timerEvent(tgt::TimeEvent* te) {
                                           ipc_volume_uint16::size_z) );
 
 		uint16_t *p = ipcvolume->data;
-		for(int k=0; k<ipc_volume_uint16::size_z; k++) {
-			for(int j=0; j<ipc_volume_uint16::size_y; j++) {
-				for(int i=0; i<ipc_volume_uint16::size_x; i++) {
+		for(int k=0; k<ipc_volume_uint16::size_z; k++)
+			for(int j=0; j<ipc_volume_uint16::size_y; j++)
+				for(int i=0; i<ipc_volume_uint16::size_x; i++)
+                {
 					_target->voxel(i,j,k) = *p++;
 				}
-			}
-		}
+
         ipcvolume->header.fresh_data = false;
         ipcvolume->header.cond_processing_visuals.notify_one();
 
-		if (_target){
+		if (_target)
+        {
 			_outport.setData(new VolumeHandle(_target), true);
-		} else  {
+		}
+        else
+        {
 			_outport.setData(0, true);
 		}
 		invalidate();
-	} catch(interprocess_exception &e) {
+	}
+    catch(interprocess_exception &e)
+    {
 		std::cout << "Unexpected exception: " << e.what() << std::endl;
-        shared_memory_object::remove(SHARED_MEMORY_NAME);
+        shared_memory_object::remove(_current_shared_memory_name.c_str());
 		_outport.setData(0, true);
 	}
 }
 
-void IPCVolumeSource::process() {
+void IPCVolumeSource::process()
+{
 	/*
 	Volume* outputVolume = 0;
 
@@ -170,13 +213,12 @@ void IPCVolumeSource::process() {
 
 void IPCVolumeSource::fillBox(VolumeUInt16* vds, ivec3 start, ivec3 end, uint16_t value) {
 	ivec3 i;
-	for (i.x = start.x; i.x < end.x; i.x++) {
-		for (i.y = start.y; i.y < end.y; i.y++) {
-			for (i.z = start.z; i.z < end.z; i.z++) {
+	for (i.x = start.x; i.x < end.x; i.x++)
+		for (i.y = start.y; i.y < end.y; i.y++)
+			for (i.z = start.z; i.z < end.z; i.z++)
+            {
 				vds->voxel(i.x, i.y, i.z) = value;
 			}
-		}
-	}
 }
 
 }   // namespace

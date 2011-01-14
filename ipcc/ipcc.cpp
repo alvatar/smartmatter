@@ -58,7 +58,7 @@ int main(int argc, char** argv)
 
     try
     {
-		shared_memory_object shm_obj(open_only, SHARED_MEMORY_NAME, read_write);
+		shared_memory_object shm_obj(open_only, SHARED_MEMORY_DEFAULT_NAME, read_write);
 		mapped_region region(shm_obj, read_write);
 
         ipc_volume_uint16 *ipcvolume = static_cast<ipc_volume_uint16*>(region.get_address());

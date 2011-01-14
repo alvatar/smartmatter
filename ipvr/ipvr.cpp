@@ -34,8 +34,8 @@ class MyEventFilter : public QObject {
 int main(int argc, char* argv[]) {
     // init both Qt and Voreen application (does not require OpenGL context)
     QApplication myapp(argc, argv);
-    VoreenApplicationQt vapp("Cellular Automata Inter-process visualization"
-			, "Cellular Automata Inter-process visualization"
+    VoreenApplicationQt vapp("IPVR"
+			, "IPVR"
 			, argc
 			, argv
 			, VoreenApplication::APP_ALL);
