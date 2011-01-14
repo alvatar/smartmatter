@@ -1,20 +1,20 @@
-#include "voreen/modules/ca/camodule.h"
+#include "voreen/modules/ipc/ipcmodule.h"
 
-#include "voreen/modules/ca/cavolumeprocessor.h"
+#include "voreen/modules/ipc/ipcvolumesource.h"
 
 namespace voreen {
 
-CAModule::CAModule() 
+IPCModule::IPCModule() 
 	: VoreenModule() {
     // module name to be used in the GUI
-    setName("Cellular Automata Volume Visualization");
+    setName("Inter-process Communication Module");
 
     // each module processor needs to be registered
-    addProcessor(new CAVolumeProcessor());
+    addProcessor(new IPCVolumeSource());
 
     // adds the module source dir <VOREEN_ROOT>/src/modules/test
     // to the shader search path
-    addShaderPath(getModulesPath("ca"));
+    addShaderPath(getModulesPath("ipc"));
 }
 
 } // namespace

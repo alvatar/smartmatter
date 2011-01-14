@@ -74,8 +74,8 @@
 // custom modules
 
 // Manually added by Álvaro Castro Castilla
-#ifdef VRN_CUSTOM_MODULE_CA
-#include "voreen/modules/ca/camodule.h"
+#ifdef VRN_CUSTOM_MODULE_IPC
+#include "voreen/modules/ipc/ipcmodule.h"
 #endif
 
 

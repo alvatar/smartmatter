@@ -8,12 +8,13 @@
 #include "voreen/core/datastructures/volume/gradient.h"
 #include "voreen/core/voreenapplication.h"
 
-#include "voreen/modules/ca/cavolumeprocessor.h"
+#include "voreen/modules/ipc/ipcvolumesource.h"
 
 namespace voreen {
 
 //! Extends VolumeAtomic to allow redefinition of the internal data, avoiding re-creation
 //! of VolumeAtomics for every updateIPC call
+/*
 template <class T>
 class RawVolumeAtomic : public VolumeAtomic<T> {
 public:
@@ -30,10 +31,11 @@ public:
 
 
 };
+*/
 
-const std::string CAVolumeProcessor::_loggerCat("voreen.CAVolumeProcessor");
+const std::string IPCVolumeSource::_loggerCat("voreen.IPCVolumeSource");
 
-CAVolumeProcessor::CAVolumeProcessor()
+IPCVolumeSource::IPCVolumeSource()
 	: VolumeProcessor()
 	  , _outport(Port::OUTPORT, "volumehandle.output", 0)
 	  , _dimension("dimension", "Dimension", 64, 2, 1024, Processor::VALID) 
@@ -50,7 +52,7 @@ CAVolumeProcessor::CAVolumeProcessor()
     _timer = VoreenApplication::app()->createTimer(&_eventHandler);
 }
 
-CAVolumeProcessor::~CAVolumeProcessor() {
+IPCVolumeSource::~IPCVolumeSource() {
     if(_timer) { delete _timer; _timer = 0; }
 
     using namespace boost::interprocess;
@@ -59,15 +61,15 @@ CAVolumeProcessor::~CAVolumeProcessor() {
     if(_region) { delete _region; _region = 0; }
 }
 
-Processor* CAVolumeProcessor::create() const {
-	return new CAVolumeProcessor();
+Processor* IPCVolumeSource::create() const {
+	return new IPCVolumeSource();
 }
 
-std::string CAVolumeProcessor::getProcessorInfo() const {
+std::string IPCVolumeSource::getProcessorInfo() const {
 	return std::string("Generates an 16-bit dataset from a Cellular Automata");
 }
 
-void CAVolumeProcessor::initialize() throw (VoreenException) {
+void IPCVolumeSource::initialize() throw (VoreenException) {
 	Processor::initialize();
 
     using namespace boost::interprocess;
@@ -86,14 +88,14 @@ void CAVolumeProcessor::initialize() throw (VoreenException) {
 	}
 }
 
-void CAVolumeProcessor::deinitialize() throw (VoreenException) {
+void IPCVolumeSource::deinitialize() throw (VoreenException) {
     _timer->stop();
 	_outport.deleteVolume();
 
 	VolumeProcessor::deinitialize();
 }
 
-void CAVolumeProcessor::timerEvent(tgt::TimeEvent* te) {
+void IPCVolumeSource::timerEvent(tgt::TimeEvent* te) {
     using namespace boost::interprocess;
 	try {
         ipc_volume_uint16 *ipcvolume = static_cast<ipc_volume_uint16*>(_region->get_address());
@@ -131,7 +133,7 @@ void CAVolumeProcessor::timerEvent(tgt::TimeEvent* te) {
 	}
 }
 
-void CAVolumeProcessor::process() {
+void IPCVolumeSource::process() {
 	/*
 	Volume* outputVolume = 0;
 
@@ -166,7 +168,7 @@ void CAVolumeProcessor::process() {
 		*/
 }
 
-void CAVolumeProcessor::fillBox(VolumeUInt16* vds, ivec3 start, ivec3 end, uint16_t value) {
+void IPCVolumeSource::fillBox(VolumeUInt16* vds, ivec3 start, ivec3 end, uint16_t value) {
 	ivec3 i;
 	for (i.x = start.x; i.x < end.x; i.x++) {
 		for (i.y = start.y; i.y < end.y; i.y++) {

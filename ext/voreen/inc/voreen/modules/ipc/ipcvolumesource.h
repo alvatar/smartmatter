@@ -1,5 +1,5 @@
-#ifndef VRN_VOLUMECREATEPROCESSOR_H
-#define VRN_VOLUMECREATEPROCESSOR_H
+#ifndef VRN_IPCVOLUMESOURCE_H
+#define VRN_IPCVOLUMESOURCE_H
 
 #include <string>
 
@@ -31,18 +31,18 @@ class VolumeHandle;
 template <class T> class RawVolumeAtomic;
 typedef RawVolumeAtomic<uint16_t> RawVolumeUInt16;
 
-class CAVolumeProcessor : public VolumeProcessor
+class IPCVolumeSource : public VolumeProcessor
 {
 public:
-	CAVolumeProcessor();
+	IPCVolumeSource();
 
-	virtual ~CAVolumeProcessor();
+	virtual ~IPCVolumeSource();
 
 	virtual Processor* create() const;
 
 	virtual std::string getClassName() const
     {
-		return "CAVolumeProcessor";
+		return "IPCVolumeSource";
 	}
 
 	virtual std::string getCategory() const

@@ -15,7 +15,7 @@ add_definitions(-DLINUX)
 add_definitions(-DUNIX)
 add_definitions(-DVRN_MODULE_BASE)
 #add_definitions(-DVRN_MODULE_CONNECTEDCOMPONENTS)
-add_definitions(-DVRN_CUSTOM_MODULE_CA)
+add_definitions(-DVRN_CUSTOM_MODULE_IPC)
 add_definitions(-DVRN_WITH_DEVIL)
 add_definitions(-DVRN_WITH_FONTRENDERING)
 add_definitions(-DVRN_WITH_ZLIB)
@@ -598,8 +598,8 @@ file(
     ./src/qt/voreenapplicationqt.cpp
 
 	# Custom modules
-	./src/modules/ca/camodule.cpp
-	./src/modules/ca/cavolumeprocessor.cpp
+	./src/modules/ipc/ipcmodule.cpp
+	./src/modules/ipc/ipcvolumesource.cpp
 	)
 
 file(
@@ -751,7 +751,6 @@ add_definitions(-DLINUX)
 add_definitions(-DUNIX)
 add_definitions(-DVRN_MODULE_BASE)
 #add_definitions(-DVRN_MODULE_CONNECTEDCOMPONENTS)
-add_definitions(-DVRN_CUSTOM_MODULE_CA)
 add_definitions(-DVRN_WITH_DEVIL)
 add_definitions(-DVRN_WITH_FONTRENDERING)
 add_definitions(-DVRN_WITH_ZLIB)
