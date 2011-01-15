@@ -15,7 +15,8 @@ add_definitions(-DLINUX)
 add_definitions(-DUNIX)
 add_definitions(-DVRN_MODULE_BASE)
 #add_definitions(-DVRN_MODULE_CONNECTEDCOMPONENTS)
-add_definitions(-DVRN_CUSTOM_MODULE_IPC)
+add_definitions(-DVRN_MODULE_IPC)
+add_definitions(-DVRN_MODULE_COAT)
 add_definitions(-DVRN_WITH_DEVIL)
 add_definitions(-DVRN_WITH_FONTRENDERING)
 add_definitions(-DVRN_WITH_ZLIB)
@@ -600,6 +601,8 @@ file(
 	# Custom modules
 	./src/modules/ipc/ipcmodule.cpp
 	./src/modules/ipc/ipcvolumesource.cpp
+	./src/modules/coat/coatmodule.cpp
+	./src/modules/coat/coatvolumereader.cpp
 	)
 
 file(

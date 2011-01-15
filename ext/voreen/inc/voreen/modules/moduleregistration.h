@@ -71,11 +71,12 @@
 #include "voreen/modules/tiff/tiffmodule.h"
 #endif
 
-// custom modules
-
-// Manually added by Álvaro Castro Castilla
-#ifdef VRN_CUSTOM_MODULE_IPC
+#ifdef VRN_MODULE_IPC
 #include "voreen/modules/ipc/ipcmodule.h"
+#endif
+
+#ifdef VRN_MODULE_COAT
+#include "voreen/modules/coat/coatmodule.h"
 #endif
 
 
@@ -123,10 +124,13 @@ void addAllModules(VoreenApplication* vapp) {
         vapp->addModule(new TiffModule());
     #endif
 
-    #ifdef VRN_CUSTOM_MODULE_IPC
+    #ifdef VRN_MODULE_IPC
         vapp->addModule(new IPCModule());
     #endif
 
+    #ifdef VRN_MODULE_COAT
+        vapp->addModule(new CoatModule());
+    #endif
 }
 
 } // namespace

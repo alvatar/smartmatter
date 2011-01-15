@@ -71,7 +71,7 @@ struct basic_algorithm_data
 };
 
 
-void basic_algorithm(uint size_x, uint size_y, uint size_z, VolumeUInt16* w)
+void basic_algorithm(uint size_x, uint size_y, uint size_z, VolumeUInt16* v1, VolumeUInt16* v2)
 {
     enum main_phases
     {
@@ -85,6 +85,24 @@ void basic_algorithm(uint size_x, uint size_y, uint size_z, VolumeUInt16* w)
 
     static basic_algorithm_data o;
 
+    static VolumeUInt16* w = v2;
+    // Double buffer
+    if(v2)
+    {
+        if(w == v1)
+            w = v2;
+        else if(w == v2)
+            w = v1;
+        else
+            cout << "Warning: problem swapping buffers inside algorithm" << endl;
+
+    }
+    // Single buffer
+    else
+    {
+        w = v1;
+    }
+
     switch(o.current_main_phase)
     {
         ////////////////////////////////////////////////////////////////////////
@@ -92,12 +110,24 @@ void basic_algorithm(uint size_x, uint size_y, uint size_z, VolumeUInt16* w)
         case find_entry:
         cout << "Step: find entry" << endl;
         move_voxel(w, o.conquistador, ivec3(rand()%2, rand()%2, rand()%2));
+        if(w == v2)
+        {
+        for(int k=0; k<size_z; k++)
+            for(int j=0; j<size_y; j++)
+                for(int i=0; i<size_x; i++)
+                {
+                    w->voxel(i,j,k) = 0xffff;
+                }
+        }
+        else
+        {
         for(int k=0; k<size_z; k++)
             for(int j=0; j<size_y; j++)
                 for(int i=0; i<size_x; i++)
                 {
                     w->voxel(i,j,k) = rand()%0xffff;
                 }
+        }
         if(o.entry_found) o.current_main_phase++;
         break;
 

@@ -13,7 +13,7 @@
                 <Processor type="Canvas" name="Canvas" id="ref2">
                     <MetaData>
                         <MetaItem name="ProcessorGraphicsItem" type="PositionMetaData" x="-247" y="234" />
-                        <MetaItem name="ProcessorWidget" type="WindowStateMetaData" visible="true" x="-43" y="178" width="481" height="454" />
+                        <MetaItem name="ProcessorWidget" type="WindowStateMetaData" visible="true" x="433" y="207" width="481" height="454" />
                     </MetaData>
                     <Properties>
                         <Property name="canvasSize">
@@ -73,7 +73,7 @@
                     </Properties>
                     <InteractionHandlers />
                 </Processor>
-                <Processor type="BoundingBox" name="Bounding Box" id="ref7">
+                <Processor type="BoundingBox" name="Bounding Box" id="ref8">
                     <MetaData>
                         <MetaItem name="ProcessorGraphicsItem" type="PositionMetaData" x="-426" y="-38" />
                     </MetaData>
@@ -104,12 +104,12 @@
                     </Properties>
                     <InteractionHandlers />
                 </Processor>
-                <Processor type="PlaneWidgetProcessor" name="PlaneWidgetProcessor" id="ref8">
+                <Processor type="PlaneWidgetProcessor" name="PlaneWidgetProcessor" id="ref7">
                     <MetaData>
                         <MetaItem name="ProcessorGraphicsItem" type="PositionMetaData" x="-465" y="41" />
                     </MetaData>
                     <Properties>
-                        <Property name="backClipPlane" value="40" id="ref16" />
+                        <Property name="backClipPlane" value="63" id="ref16" />
                         <Property name="bottomClipPlane" value="0" id="ref22" />
                         <Property name="enableBackZ" value="true" />
                         <Property name="enableBottomY" value="true" />
@@ -121,7 +121,7 @@
                         <Property name="innerColor">
                             <value x="0" y="0" z="0" w="1" />
                         </Property>
-                        <Property name="leftClipPlane" value="40" id="ref26" />
+                        <Property name="leftClipPlane" value="63" id="ref26" />
                         <Property name="lightPosition">
                             <value x="2.29999995" y="1.5" z="1.5" w="1" />
                         </Property>
@@ -129,9 +129,9 @@
                         <Property name="manipulatorScaling" value="1" />
                         <Property name="mouseEvent.clipplaneMovement" enabled="true" mouseAction="7" mouseButtons="1" keyCode="0" modifier="0" shareEvents="false" />
                         <Property name="mouseEvent.synchronizedMovement" enabled="false" mouseAction="7" mouseButtons="1" keyCode="0" modifier="0" shareEvents="false" />
-                        <Property name="rightClipPlane" value="19" id="ref24" />
+                        <Property name="rightClipPlane" value="29.92499924" id="ref24" />
                         <Property name="showInnerBB" value="false" />
-                        <Property name="topClipPlane" value="40" id="ref20" />
+                        <Property name="topClipPlane" value="63" id="ref20" />
                         <Property name="useSphereManipulatorBackY" value="false" />
                         <Property name="useSphereManipulatorBottomZ" value="false" />
                         <Property name="useSphereManipulatorFrontY" value="false" />
@@ -237,13 +237,13 @@
                         <MetaItem name="ProcessorGraphicsItem" type="PositionMetaData" x="-219" y="-264" />
                     </MetaData>
                     <Properties>
-                        <Property name="backClippingPlane" value="40" id="ref19" />
+                        <Property name="backClippingPlane" value="63" id="ref19" />
                         <Property name="bottomClippingPlane" value="0" id="ref17" />
                         <Property name="frontClippingPlane" value="0" id="ref21" />
-                        <Property name="leftClippingPlane" value="40" id="ref25" />
+                        <Property name="leftClippingPlane" value="63" id="ref25" />
                         <Property name="resetClipPlanes" />
-                        <Property name="rightClippingPlane" value="19" id="ref23" />
-                        <Property name="topClippingPlane" value="40" id="ref15" />
+                        <Property name="rightClippingPlane" value="29.92499924" id="ref23" />
+                        <Property name="topClippingPlane" value="63" id="ref15" />
                         <Property name="useClipping" value="true" />
                     </Properties>
                     <InteractionHandlers />
@@ -287,12 +287,16 @@
                 </Processor>
                 <Processor type="IPCVolumeSource" name="IPCVolumeSource" id="ref6">
                     <MetaData>
-                        <MetaItem name="ProcessorGraphicsItem" type="PositionMetaData" x="-527" y="-264" />
+                        <MetaItem name="ProcessorGraphicsItem" type="PositionMetaData" x="-541" y="-194" />
                     </MetaData>
                     <Properties>
-                        <Property name="dimension" value="40" />
+                        <Property name="create_double_buffer" value="true" />
                         <Property name="shared_memory_name" value="volume_shared_memory" />
                         <Property name="timer_interval" value="1000" />
+                        <Property name="toggle_ipc" value="true" />
+                        <Property name="x_dimension" value="64" />
+                        <Property name="y_dimension" value="64" />
+                        <Property name="z_dimension" value="64" />
                     </Properties>
                     <InteractionHandlers />
                 </Processor>
@@ -350,8 +354,8 @@
                     <Outport name="volumehandle.output">
                         <Processor type="IPCVolumeSource" ref="ref6" />
                     </Outport>
-                    <Inport name="volumehandle.volumehandle">
-                        <Processor type="CubeMeshProxyGeometry" ref="ref4" />
+                    <Inport name="volume">
+                        <Processor type="PlaneWidgetProcessor" ref="ref7" />
                     </Inport>
                 </Connection>
                 <Connection>
@@ -359,7 +363,15 @@
                         <Processor type="IPCVolumeSource" ref="ref6" />
                     </Outport>
                     <Inport name="volume">
-                        <Processor type="BoundingBox" ref="ref7" />
+                        <Processor type="BoundingBox" ref="ref8" />
+                    </Inport>
+                </Connection>
+                <Connection>
+                    <Outport name="volumehandle.output">
+                        <Processor type="IPCVolumeSource" ref="ref6" />
+                    </Outport>
+                    <Inport name="volumehandle.volumehandle">
+                        <Processor type="CubeMeshProxyGeometry" ref="ref4" />
                     </Inport>
                 </Connection>
                 <Connection>
@@ -370,19 +382,11 @@
                         <Processor type="SingleVolumeRaycaster" ref="ref3" />
                     </Inport>
                 </Connection>
-                <Connection>
-                    <Outport name="volumehandle.output">
-                        <Processor type="IPCVolumeSource" ref="ref6" />
-                    </Outport>
-                    <Inport name="volume">
-                        <Processor type="PlaneWidgetProcessor" ref="ref8" />
-                    </Inport>
-                </Connection>
             </Connections>
             <CoProcessorConnections>
                 <CoProcessorConnection>
                     <Outport name="coprocessor.geometryrenderer">
-                        <Processor type="BoundingBox" ref="ref7" />
+                        <Processor type="BoundingBox" ref="ref8" />
                     </Outport>
                     <Inport name="coprocessor.geometryrenderers">
                         <Processor type="GeometryProcessor" ref="ref0" />
@@ -398,7 +402,7 @@
                 </CoProcessorConnection>
                 <CoProcessorConnection>
                     <Outport name="coprocessor.geometryrenderer">
-                        <Processor type="PlaneWidgetProcessor" ref="ref8" />
+                        <Processor type="PlaneWidgetProcessor" ref="ref7" />
                     </Outport>
                     <Inport name="coprocessor.geometryrenderers">
                         <Processor type="GeometryProcessor" ref="ref0" />

@@ -7,6 +7,7 @@ cmake_policy(SET CMP0015 NEW)
 
 project(ipcc)
 
+#add_definitions(-D_DEBUG)
 add_definitions(-O3)
 
 # Options
@@ -53,6 +54,8 @@ target_link_libraries(
 
 project(ipvr)
 
+#add_definitions(-D_DEBUG)
+#add_definitions(-ggdb)
 add_definitions(-O3)
 
 include_directories(

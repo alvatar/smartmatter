@@ -73,6 +73,8 @@ protected:
 
     void toggleIPCRead();
 
+    void toggleDoubleBuffer();
+
 private:
     VolumePort _outport;
 
@@ -86,6 +88,9 @@ private:
     //! Enable/disable IPC reading
     BoolProperty _toggle_ipc;
     bool _enable_ipc;
+    //! Enable/disable double buffer creation
+    BoolProperty _create_double_buffer;
+    bool _double_buffer;
     //! Timer
     IntProperty _timer_interval;
     static const uint _default_timer_interval;

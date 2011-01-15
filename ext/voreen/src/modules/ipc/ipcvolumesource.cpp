@@ -25,12 +25,14 @@ const uint IPCVolumeSource::_default_timer_interval(1000);
 IPCVolumeSource::IPCVolumeSource()
 	: VolumeProcessor()
 	  , _outport(Port::OUTPORT, "volumehandle.output", 0)
-	  , _x_dimension("x_dimension", "x Dimension", 64, 2, 512, Processor::VALID) 
-	  , _y_dimension("y_dimension", "y Dimension", 64, 2, 512, Processor::VALID) 
-	  , _z_dimension("z_dimension", "z Dimension", 64, 2, 512, Processor::VALID) 
-	  , _timer_interval("timer_interval", "Timer Interval", _default_timer_interval, 40, 5000, Processor::VALID) 
+	  , _x_dimension("x_dimension", "x dimension", 64, 2, 512, Processor::VALID) 
+	  , _y_dimension("y_dimension", "y dimension", 64, 2, 512, Processor::VALID) 
+	  , _z_dimension("z_dimension", "z dimension", 64, 2, 512, Processor::VALID) 
+	  , _timer_interval("timer_interval", "New data check interval", _default_timer_interval, 40, 5000, Processor::VALID) 
       , _toggle_ipc("toggle_ipc", "Enable IPC reading", true)
-      , _enable_ipc(true)
+      , _enable_ipc(true) // same as above
+      , _create_double_buffer("create_double_buffer", "Double-buffered volume", true)
+      , _double_buffer(true) // same as above
       , _current_shared_memory_name(SHARED_MEMORY_DEFAULT_NAME)
 	  , _shared_memory_name("shared_memory_name", "Shared memory name", SHARED_MEMORY_DEFAULT_NAME, Processor::VALID)
       , _timer(0)
@@ -40,6 +42,7 @@ IPCVolumeSource::IPCVolumeSource()
 	addPort(_outport);
 
 	addProperty(&_toggle_ipc);
+	addProperty(&_create_double_buffer);
 	addProperty(&_x_dimension);
 	addProperty(&_y_dimension);
 	addProperty(&_z_dimension);
@@ -50,6 +53,7 @@ IPCVolumeSource::IPCVolumeSource()
 
     _toggle_ipc.onChange(CallMemberAction<IPCVolumeSource>(this, &IPCVolumeSource::toggleIPCRead));
 
+    _create_double_buffer.onChange(CallMemberAction<IPCVolumeSource>(this, &IPCVolumeSource::toggleDoubleBuffer));
     _x_dimension.onChange(CallMemberAction<IPCVolumeSource>(this, &IPCVolumeSource::adaptSharedSegment));
     _y_dimension.onChange(CallMemberAction<IPCVolumeSource>(this, &IPCVolumeSource::adaptSharedSegment));
     _z_dimension.onChange(CallMemberAction<IPCVolumeSource>(this, &IPCVolumeSource::adaptSharedSegment));
@@ -70,7 +74,7 @@ Processor* IPCVolumeSource::create() const
 
 std::string IPCVolumeSource::getProcessorInfo() const
 {
-	return std::string("Generates an 16-bit dataset updated periodically via IPC");
+	return string("Generates an 16-bit dataset updated periodically via IPC");
 }
 
 void IPCVolumeSource::initialize() throw (VoreenException)
@@ -85,14 +89,16 @@ void IPCVolumeSource::initialize() throw (VoreenException)
     uint size_z = _z_dimension.get();
     shared_memory_object::remove(_current_shared_memory_name.c_str());
 
+    size_t buffer_size = size_x * size_y * size_z * sizeof(uint16_t);
     // TODO: Why do I need to add extra allocation? [2 places]
-    size_t total_shared_memory_size = size_x
-        * size_y
-        * size_z
-        * sizeof(uint16_t)
-        + sizeof(ipc_volume_info)
-        + 65536;
-    _shared_segment = new managed_shared_memory(create_only, _current_shared_memory_name.c_str(), total_shared_memory_size);
+    _double_buffer ? 
+        _shared_segment = new managed_shared_memory(create_only
+                                                    ,_current_shared_memory_name.c_str()
+                                                    ,(buffer_size * 2) + sizeof(ipc_volume_info) + 65536):
+        _shared_segment = new managed_shared_memory(create_only
+                                                    ,_current_shared_memory_name.c_str()
+                                                    ,buffer_size + sizeof(ipc_volume_info) + 65536);
+
 
     _allocator = new node_allocator_t(_shared_segment->get_segment_manager());
 
@@ -100,7 +106,11 @@ void IPCVolumeSource::initialize() throw (VoreenException)
     _volumeinfo->size_x = size_x;
     _volumeinfo->size_y = size_y;
     _volumeinfo->size_z = size_z;
-    _volumedata = _shared_segment->construct<uint16_t>(unique_instance)[size_x*size_y*size_z]();
+    _volumeinfo->double_buffer = _double_buffer;
+
+    _double_buffer ? 
+        _volumedata = _shared_segment->construct<uint16_t>(unique_instance)[size_x*size_y*size_z * 2]():
+        _volumedata = _shared_segment->construct<uint16_t>(unique_instance)[size_x*size_y*size_z]();
 
     if (_timer)
     {
@@ -136,6 +146,12 @@ void IPCVolumeSource::toggleIPCRead()
     _enable_ipc = _toggle_ipc.get();
 }
 
+void IPCVolumeSource::toggleDoubleBuffer()
+{
+    _double_buffer = _create_double_buffer.get();
+    adaptSharedSegment();
+}
+
 void IPCVolumeSource::adaptSharedSegment()
 {
     // Remove previous shared memory
@@ -151,25 +167,29 @@ void IPCVolumeSource::adaptSharedSegment()
     _current_shared_memory_name = _shared_memory_name.get();
     shared_memory_object::remove(_current_shared_memory_name.c_str());
     // TODO: Why do I need to add extra allocation? [2 places]
-    size_t total_shared_memory_size = size_x
-                                      * size_y
-                                      * size_z
-                                      * sizeof(uint16_t)
-                                      + sizeof(ipc_volume_info)
-                                      + 65536;
-    _shared_segment = new managed_shared_memory(create_only
-                                                ,_current_shared_memory_name.c_str()
-                                                ,total_shared_memory_size);
+    size_t buffer_size = size_x * size_y * size_z * sizeof(uint16_t);
+
+    _double_buffer ? 
+        _shared_segment = new managed_shared_memory(create_only
+                                                    ,_current_shared_memory_name.c_str()
+                                                    ,(buffer_size * 2) + sizeof(ipc_volume_info) + 65536):
+        _shared_segment = new managed_shared_memory(create_only
+                                                    ,_current_shared_memory_name.c_str()
+                                                    ,buffer_size + sizeof(ipc_volume_info) + 65536);
+
     _allocator = new node_allocator_t(_shared_segment->get_segment_manager());
 
     _volumeinfo = _shared_segment->construct<ipc_volume_info>(unique_instance)();
     _volumeinfo->size_x = size_x;
     _volumeinfo->size_y = size_y;
     _volumeinfo->size_z = size_z;
-        cout << "x size: " << size_x << endl;
-        cout << "y size: " << size_y << endl;
-        cout << "z size: " << size_z << endl;
-    _volumedata = _shared_segment->construct<uint16_t>(unique_instance)[size_x*size_y*size_z]();
+    _volumeinfo->double_buffer = _double_buffer;
+
+    _double_buffer ? 
+        _volumedata = _shared_segment->construct<uint16_t>(unique_instance)[size_x*size_y*size_z * 2]():
+        _volumedata = _shared_segment->construct<uint16_t>(unique_instance)[size_x*size_y*size_z]();
+
+    LINFO("Shared memory for IPC reallocated");
 }
 
 void IPCVolumeSource::timerEvent(tgt::TimeEvent* te)
@@ -177,23 +197,34 @@ void IPCVolumeSource::timerEvent(tgt::TimeEvent* te)
 	try
     {
 		scoped_lock<interprocess_mutex> lock(_volumeinfo->mutex);
-        if(!_enable_ipc || !_volumeinfo->fresh_data)
-        {
-            return;
-        }
+        // Test for new data from server process
+        if(!_enable_ipc || !_volumeinfo->fresh_data) return;
 
         uint size_x = _x_dimension.get();
         uint size_y = _y_dimension.get();
         uint size_z = _z_dimension.get();
 		_target = new VolumeUInt16(ivec3(size_x,size_y,size_z));
 
-		uint16_t *p = _volumedata;
-		for(int k=0; k<size_z; k++)
-			for(int j=0; j<size_y; j++)
-				for(int i=0; i<size_x; i++)
-                {
-					_target->voxel(i,j,k) = *p++;
-				}
+        if(_double_buffer)
+        {
+            uint16_t *p = _volumeinfo->offset_ptr.get();
+            for(int k=0; k<size_z; k++)
+                for(int j=0; j<size_y; j++)
+                    for(int i=0; i<size_x; i++)
+                    {
+                        _target->voxel(i,j,k) = *p++;
+                    }
+        }
+        else
+        {
+            uint16_t *p = _volumedata;
+            for(int k=0; k<size_z; k++)
+                for(int j=0; j<size_y; j++)
+                    for(int i=0; i<size_x; i++)
+                    {
+                        _target->voxel(i,j,k) = *p++;
+                    }
+        }
 
         _volumeinfo->fresh_data = false;
         _volumeinfo->cond_processing_visuals.notify_one();
