@@ -8,8 +8,9 @@
 #include <unistd.h>
 #endif
 
-#include <boost/interprocess/shared_memory_object.hpp>
-#include <boost/interprocess/mapped_region.hpp>
+//#include <boost/interprocess/shared_memory_object.hpp>
+//#include <boost/interprocess/mapped_region.hpp>
+#include <boost/interprocess/managed_shared_memory.hpp>
 #include <boost/interprocess/sync/scoped_lock.hpp>
 
 #include "voreen/core/datastructures/volume/volumeatomic.h"
@@ -26,9 +27,11 @@ void signal_exit_program(int sig)
 
 //! Calculate next step of the 3d CA
 //!
-void ca_step( void (*f)(voreen::VolumeUInt16*), voreen::VolumeUInt16* v)
+void ca_step( uint size_x, uint size_y, uint size_z
+        , void (*f)(uint, uint, uint, voreen::VolumeUInt16*)
+        , voreen::VolumeUInt16* v)
 {
-    f(v);
+    f(size_x, size_y, size_z, v);
 }
 
 int main(int argc, char** argv)
@@ -58,26 +61,37 @@ int main(int argc, char** argv)
 
     try
     {
-		shared_memory_object shm_obj(open_only, SHARED_MEMORY_DEFAULT_NAME, read_write);
-		mapped_region region(shm_obj, read_write);
+        managed_shared_memory segment(open_only, SHARED_MEMORY_DEFAULT_NAME);
+        pair<ipc_volume_info*,size_t> volumeinfo_pair = segment.find<ipc_volume_info>(unique_instance);
+        assert(volumeinfo_pair.second == 1);
+        ipc_volume_info* volumeinfo = volumeinfo_pair.first;
 
-        ipc_volume_uint16 *ipcvolume = static_cast<ipc_volume_uint16*>(region.get_address());
-        VolumeUInt16* target = new VolumeUInt16( ipcvolume->data,
-                                                 ivec3(ipc_volume_uint16::size_x,
-                                                 ipc_volume_uint16::size_y,
-                                                 ipc_volume_uint16::size_z) );
+        uint size_x = volumeinfo->size_x;
+        uint size_y = volumeinfo->size_y;
+        uint size_z = volumeinfo->size_z;
+        cout << "x size: " << size_x << endl;
+        cout << "y size: " << size_y << endl;
+        cout << "z size: " << size_z << endl;
+
+        pair<uint16_t*,size_t> volumedata_pair = segment.find<uint16_t>(unique_instance);
+        assert(volumedata_pair.second == (size_x * size_y * size_z));
+        uint16_t* volumedata = volumedata_pair.first;
+        VolumeUInt16* target = new VolumeUInt16( volumedata,
+                                                 ivec3(size_x,
+                                                       size_y,
+                                                       size_z) );
         while(true)
         {
-            scoped_lock<interprocess_mutex> lock(ipcvolume->header.mutex);
-            if(ipcvolume->header.fresh_data)
+            scoped_lock<interprocess_mutex> lock(volumeinfo->mutex);
+            if(volumeinfo->fresh_data)
             {
-                ipcvolume->header.cond_processing_visuals.wait(lock);
+                volumeinfo->cond_processing_visuals.wait(lock);
             }
 
-            ca_step(basic_algorithm,target);
+            ca_step(size_x, size_y, size_z, basic_algorithm, target);
 
             // notify the client that the CA processing is finished
-            ipcvolume->header.fresh_data = true;
+            volumeinfo->fresh_data = true;
             // mutex is released here
         }
     }

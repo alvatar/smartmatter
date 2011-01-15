@@ -71,7 +71,7 @@ struct basic_algorithm_data
 };
 
 
-void basic_algorithm(VolumeUInt16* w)
+void basic_algorithm(uint size_x, uint size_y, uint size_z, VolumeUInt16* w)
 {
     enum main_phases
     {
@@ -92,9 +92,9 @@ void basic_algorithm(VolumeUInt16* w)
         case find_entry:
         cout << "Step: find entry" << endl;
         move_voxel(w, o.conquistador, ivec3(rand()%2, rand()%2, rand()%2));
-        for(int k=0; k<ipc_volume_uint16::size_z; k++)
-            for(int j=0; j<ipc_volume_uint16::size_y; j++)
-                for(int i=0; i<ipc_volume_uint16::size_x; i++)
+        for(int k=0; k<size_z; k++)
+            for(int j=0; j<size_y; j++)
+                for(int i=0; i<size_x; i++)
                 {
                     w->voxel(i,j,k) = rand()%0xffff;
                 }
@@ -105,9 +105,9 @@ void basic_algorithm(VolumeUInt16* w)
         // Phase 2: Create external infrastructure
         case create_external_infrastructure:
         cout << "Step: create external infrastructure" << endl;
-        for(int k=0; k<ipc_volume_uint16::size_z; k++)
-            for(int j=0; j<ipc_volume_uint16::size_y; j++)
-                for(int i=0; i<ipc_volume_uint16::size_x; i++)
+        for(int k=0; k<size_z; k++)
+            for(int j=0; j<size_y; j++)
+                for(int i=0; i<size_x; i++)
                 {
                     w->voxel(i,j,k) = rand()%0xffff;
                 }
@@ -117,9 +117,9 @@ void basic_algorithm(VolumeUInt16* w)
         // Phase 3: Penetrate soil
         case penetrate_soil:
         cout << "Step: penetrate soil" << endl;
-        for(int k=0; k<ipc_volume_uint16::size_z; k++)
-            for(int j=0; j<ipc_volume_uint16::size_y; j++)
-                for(int i=0; i<ipc_volume_uint16::size_x; i++)
+        for(int k=0; k<size_z; k++)
+            for(int j=0; j<size_y; j++)
+                for(int i=0; i<size_x; i++)
                 {
                     w->voxel(i,j,k) = rand()%0xffff;
                 }
@@ -129,9 +129,9 @@ void basic_algorithm(VolumeUInt16* w)
         // Phase 4: Irrigate soil
         case irrigate_soil:
         cout << "Step: irrigate soil" << endl;
-        for(int k=0; k<ipc_volume_uint16::size_z; k++)
-            for(int j=0; j<ipc_volume_uint16::size_y; j++)
-                for(int i=0; i<ipc_volume_uint16::size_x; i++)
+        for(int k=0; k<size_z; k++)
+            for(int j=0; j<size_y; j++)
+                for(int i=0; i<size_x; i++)
                 {
                     w->voxel(i,j,k) = rand()%0xffff;
                 }
@@ -141,9 +141,9 @@ void basic_algorithm(VolumeUInt16* w)
         // Phase 5: Grow internal
         case grow_internal:
         cout << "Step: grow internal" << endl;
-        for(int k=0; k<ipc_volume_uint16::size_z; k++)
-            for(int j=0; j<ipc_volume_uint16::size_y; j++)
-                for(int i=0; i<ipc_volume_uint16::size_x; i++)
+        for(int k=0; k<size_z; k++)
+            for(int j=0; j<size_y; j++)
+                for(int i=0; i<size_x; i++)
                 {
                     w->voxel(i,j,k) = rand()%0xffff;
                 }
@@ -153,9 +153,9 @@ void basic_algorithm(VolumeUInt16* w)
         // Phase 6: Grow external
         case grow_external:
         cout << "Step: grow external" << endl;
-        for(int k=0; k<ipc_volume_uint16::size_z; k++)
-            for(int j=0; j<ipc_volume_uint16::size_y; j++)
-                for(int i=0; i<ipc_volume_uint16::size_x; i++)
+        for(int k=0; k<size_z; k++)
+            for(int j=0; j<size_y; j++)
+                for(int i=0; i<size_x; i++)
                 {
                     w->voxel(i,j,k) = rand()%0xffff;
                 }

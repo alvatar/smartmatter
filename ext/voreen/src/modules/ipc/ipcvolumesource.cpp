@@ -1,5 +1,3 @@
-#include <boost/interprocess/shared_memory_object.hpp>
-#include <boost/interprocess/mapped_region.hpp>
 #include <boost/interprocess/sync/scoped_lock.hpp>
 
 #include "voreen/core/datastructures/volume/volume.h"
@@ -17,7 +15,6 @@ using namespace boost::interprocess;
 
 //! Static data
 //
-
 const std::string IPCVolumeSource::_loggerCat("voreen.IPCVolumeSource");
 
 const uint IPCVolumeSource::_default_timer_interval(1000);
@@ -29,19 +26,22 @@ uint IPCVolumeSource::_count_instances = 0;
 IPCVolumeSource::IPCVolumeSource()
 	: VolumeProcessor()
 	  , _outport(Port::OUTPORT, "volumehandle.output", 0)
-	  , _dimension("dimension", "Dimension", 64, 2, 512, Processor::VALID) 
+	  , _x_dimension("x_dimension", "x Dimension", 64, 2, 512, Processor::VALID) 
+	  , _y_dimension("y_dimension", "y Dimension", 64, 2, 512, Processor::VALID) 
+	  , _z_dimension("z_dimension", "z Dimension", 64, 2, 512, Processor::VALID) 
 	  , _timer_interval("timer_interval", "Timer Interval", _default_timer_interval, 40, 5000, Processor::VALID) 
       , _current_shared_memory_name(SHARED_MEMORY_DEFAULT_NAME)
 	  , _shared_memory_name("shared_memory_name", "Shared memory name", SHARED_MEMORY_DEFAULT_NAME, Processor::VALID)
       , _timer(0)
       , _eventHandler()
 	  , _target(0)
-      , _ipcvolume(0)
 {
     _count_instances++;
 	addPort(_outport);
 
-	addProperty(&_dimension);
+	addProperty(&_x_dimension);
+	addProperty(&_y_dimension);
+	addProperty(&_z_dimension);
 	addProperty(&_timer_interval);
 	addProperty(&_shared_memory_name);
 
@@ -56,9 +56,10 @@ IPCVolumeSource::~IPCVolumeSource()
 {
     if(_timer) { delete _timer; _timer = 0; }
 
+    _shared_segment->deallocate(_volumedata);
     shared_memory_object::remove(_current_shared_memory_name.c_str());
-    if(_shm_obj) { delete _shm_obj; _shm_obj = 0; }
-    if(_region) { delete _region; _region = 0; }
+    if(_allocator) { delete _allocator; _allocator = 0; }
+    if(_shared_segment) { delete _shared_segment; _shared_segment = 0; }
 
     _count_instances--;
 }
@@ -81,23 +82,38 @@ void IPCVolumeSource::initialize() throw (VoreenException)
     // TODO: also a check for same name should be performed
     if(_count_instances)
     {
+        uint size_x = _x_dimension.get();
+        uint size_y = _y_dimension.get();
+        uint size_z = _z_dimension.get();
         shared_memory_object::remove(_current_shared_memory_name.c_str());
-        _shm_obj = new shared_memory_object(create_only , _current_shared_memory_name.c_str(), read_write);
-        _shm_obj->truncate(sizeof(ipc_volume_uint16));
-        _region = new mapped_region(*_shm_obj, read_write);
-        ipc_volume_uint16 *mem = static_cast<ipc_volume_uint16*>(_region->get_address());
-        _ipcvolume = new(mem) ipc_volume_uint16();
+
+        // TODO: Why do I need to add extra allocation? [2 places]
+        size_t total_shared_memory_size = size_x
+                                          * size_y
+                                          * size_z
+                                          * sizeof(uint16_t)
+                                          + sizeof(ipc_volume_info)
+                                          + 65536;
+        _shared_segment = new managed_shared_memory(create_only, _current_shared_memory_name.c_str(), total_shared_memory_size);
+
+        _allocator = new node_allocator_t(_shared_segment->get_segment_manager());
+
+        _volumeinfo = _shared_segment->construct<ipc_volume_info>(unique_instance)();
+        _volumeinfo->size_x = size_x;
+        _volumeinfo->size_y = size_y;
+        _volumeinfo->size_z = size_z;
+        _volumedata = _shared_segment->construct<uint16_t>(unique_instance)[size_x*size_y*size_z]();
     }
 
     if (_timer)
     {
-		_timer->start(_default_timer_interval);
+        _timer->start(_default_timer_interval);
     }
     else
     {
         LWARNING("No timer.");
         return;
-	}
+    }
 }
 
 void IPCVolumeSource::deinitialize() throw (VoreenException)
@@ -116,46 +132,62 @@ void IPCVolumeSource::changeCheckTime()
 void IPCVolumeSource::createNewSharedMemory()
 {
     // Remove previous shared memory
+    _shared_segment->deallocate(_volumedata);
     shared_memory_object::remove(_current_shared_memory_name.c_str());
-    if(_shm_obj) { delete _shm_obj; _shm_obj = 0; }
-    if(_region) { delete _region; _region = 0; }
+    if(_allocator) { delete _allocator; _allocator = 0; }
+    if(_shared_segment) { delete _shared_segment; _shared_segment = 0; }
 
     // Create new shared memory
+    uint size_x = _x_dimension.get();
+    uint size_y = _y_dimension.get();
+    uint size_z = _z_dimension.get();
+
     _current_shared_memory_name = _shared_memory_name.get();
     shared_memory_object::remove(_current_shared_memory_name.c_str());
-    _shm_obj = new shared_memory_object(create_only , _current_shared_memory_name.c_str(), read_write);
-    _shm_obj->truncate(sizeof(ipc_volume_uint16));
-    _region = new mapped_region(*_shm_obj, read_write);
-    ipc_volume_uint16 *mem = static_cast<ipc_volume_uint16*>(_region->get_address());
-    _ipcvolume = new(mem) ipc_volume_uint16();
+    // TODO: Why do I need to add extra allocation? [2 places]
+    size_t total_shared_memory_size = size_x
+                                      * size_y
+                                      * size_z
+                                      * sizeof(uint16_t)
+                                      + sizeof(ipc_volume_info)
+                                      + 65536;
+    _shared_segment = new managed_shared_memory(create_only
+                                                ,_current_shared_memory_name.c_str()
+                                                ,total_shared_memory_size);
+    _allocator = new node_allocator_t(_shared_segment->get_segment_manager());
+
+    _volumeinfo = _shared_segment->find_or_construct<ipc_volume_info>(unique_instance)();
+    _volumeinfo->size_x = size_x;
+    _volumeinfo->size_y = size_y;
+    _volumeinfo->size_z = size_z;
+    _volumedata = _shared_segment->find_or_construct<uint16_t>(unique_instance)[size_x*size_y*size_z]();
 }
 
 void IPCVolumeSource::timerEvent(tgt::TimeEvent* te)
 {
 	try
     {
-        ipc_volume_uint16 *ipcvolume = static_cast<ipc_volume_uint16*>(_region->get_address());
-
-		scoped_lock<interprocess_mutex> lock(ipcvolume->header.mutex);
-        if(!ipcvolume->header.fresh_data)
+		scoped_lock<interprocess_mutex> lock(_volumeinfo->mutex);
+        if(!_volumeinfo->fresh_data)
         {
             return;
         }
 
-		_target = new VolumeUInt16( ivec3(ipc_volume_uint16::size_x,
-                                          ipc_volume_uint16::size_y,
-                                          ipc_volume_uint16::size_z) );
+        uint size_x = _x_dimension.get();
+        uint size_y = _y_dimension.get();
+        uint size_z = _z_dimension.get();
+		_target = new VolumeUInt16(ivec3(size_x,size_y,size_z));
 
-		uint16_t *p = ipcvolume->data;
-		for(int k=0; k<ipc_volume_uint16::size_z; k++)
-			for(int j=0; j<ipc_volume_uint16::size_y; j++)
-				for(int i=0; i<ipc_volume_uint16::size_x; i++)
+		uint16_t *p = _volumedata;
+		for(int k=0; k<size_z; k++)
+			for(int j=0; j<size_y; j++)
+				for(int i=0; i<size_x; i++)
                 {
 					_target->voxel(i,j,k) = *p++;
 				}
 
-        ipcvolume->header.fresh_data = false;
-        ipcvolume->header.cond_processing_visuals.notify_one();
+        _volumeinfo->fresh_data = false;
+        _volumeinfo->cond_processing_visuals.notify_one();
 
 		if (_target)
         {
@@ -177,38 +209,6 @@ void IPCVolumeSource::timerEvent(tgt::TimeEvent* te)
 
 void IPCVolumeSource::process()
 {
-	/*
-	Volume* outputVolume = 0;
-
-	ivec3 dimensions;
-	dimensions.x = _dimension.get();
-	dimensions.y = dimensions.x;
-	dimensions.z = dimensions.x;
-
-	VolumeUInt16* target = new VolumeUInt16(dimensions);
-
-	outputVolume = target;
-
-	vec3 center;
-	center = dimensions / 2;
-
-	int s = dimensions.x;
-	int thickness = s / 15;
-	int border = 3;
-
-	uint16_t white = 200;
-
-	LINFO("Cellular Automata with dimensions: " << dimensions);
-
-	fillBox(target, ivec3(0,0,0), dimensions, 0); // clear dataset
-	fillBox(target, ivec3(0,0,0), dimensions/2, white);
-
-	// assign computed volume to outport
-	if (outputVolume)
-		_outport.setData(new VolumeHandle(outputVolume), true);
-	else
-		_outport.setData(0, true);
-		*/
 }
 
 void IPCVolumeSource::fillBox(VolumeUInt16* vds, ivec3 start, ivec3 end, uint16_t value) {

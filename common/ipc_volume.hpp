@@ -10,7 +10,7 @@
 
 #define SHARED_MEMORY_DEFAULT_NAME "volume_shared_memory"
 
-struct ipc_volume_header
+struct ipc_volume_info
 {
     //! IPC Mutex
     boost::interprocess::interprocess_mutex mutex;
@@ -20,27 +20,11 @@ struct ipc_volume_header
 
     //!Is there any message
     bool fresh_data;
+
+    //! Dimensions
+    size_t size_x;
+    size_t size_y;
+    size_t size_z;
 };
-
-template <class T>
-struct ipc_volume
-{
-	//! Access to the type that the IPCVolume is built upon
-	typedef T voxel_type;
-
-	enum { size_x = 40 };
-	enum { size_y = 40 };
-	enum { size_z = 40 };
-	enum { buffer_size = size_x*size_y*size_z };
-
-	//! Metadata and header of the shared memory
-	ipc_volume_header header;
-
-	//! The volume data
-	T data[buffer_size];
-};
-
-typedef ipc_volume<uint8_t> ipc_volume_uint8;
-typedef ipc_volume<uint16_t> ipc_volume_uint16;
 
 #endif

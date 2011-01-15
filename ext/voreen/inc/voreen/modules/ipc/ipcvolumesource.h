@@ -11,14 +11,16 @@
 #include "voreen/core/properties/stringproperty.h"
 #include "voreen/core/datastructures/volume/volumeatomic.h"
 
+#include <boost/interprocess/managed_shared_memory.hpp>
+#include <boost/interprocess/allocators/node_allocator.hpp>
+
 #include "ipc_volume.hpp"
 
 namespace boost
 {
     namespace interprocess
     {
-        class shared_memory_object;
-        class mapped_region;
+        typedef node_allocator<int, managed_shared_memory::segment_manager> node_allocator_t;
     }
 }
 
@@ -26,8 +28,6 @@ namespace voreen
 {
 
 class VolumeHandle;
-template <class T> class RawVolumeAtomic;
-typedef RawVolumeAtomic<uint16_t> RawVolumeUInt16;
 
 class IPCVolumeSource : public VolumeProcessor
 {
@@ -75,32 +75,36 @@ private:
 
     static const std::string _loggerCat; // category used in logging
 
-    IntProperty _dimension;
-
-    IntProperty _timer_interval;
-
-    static const uint _default_timer_interval;
-
-    StringProperty _shared_memory_name;
-
-    std::string _current_shared_memory_name;
-
-    ipc_volume_uint16 *_ipcvolume;
-
-    boost::interprocess::shared_memory_object* _shm_obj;
-
-    boost::interprocess::mapped_region* _region;
-
+    //! Class instances counter
     static uint _count_instances;
 
-	//! Structure for interpreting the shared data for visualization
-    VolumeUInt16 *_target;
+    //! Volume dimensions
+    IntProperty _x_dimension;
+    IntProperty _y_dimension;
+    IntProperty _z_dimension;
 
+    //! Timer
+    IntProperty _timer_interval;
+    static const uint _default_timer_interval;
 	//! Timer object
     tgt::Timer* _timer;
-
 	//! A local eventhanlde which is added to the timer
     tgt::EventHandler _eventHandler;
+
+    //! Shared memory name
+    StringProperty _shared_memory_name;
+    std::string _current_shared_memory_name;
+    //! Node allocator
+    //typedef node_allocator<int, managed_shared_memory::segment_manager> node_allocator_t;
+    boost::interprocess::node_allocator_t *_allocator;
+    //! Managed shared memory object
+    boost::interprocess::managed_shared_memory *_shared_segment;
+    //! Volume information as a header
+    ipc_volume_info *_volumeinfo;
+    //! Place in shared memory where data is stored
+    uint16_t *_volumedata;
+	//! Structure for interpreting the shared data for visualization
+    VolumeUInt16 *_target;
 };
 
 }   //namespace
