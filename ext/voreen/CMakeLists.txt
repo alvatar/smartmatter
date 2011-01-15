@@ -26,14 +26,14 @@ add_definitions(-DTGT_HAS_FTGL)
 add_definitions(-DTGT_HAS_ZLIB)
 add_definitions(-DTGT_HAS_ZIP)
 
-add_definitions(-O3)
 add_definitions(${QT_DEFINITIONS})
 add_definitions(-DQT_NO_DEBUG)
 #add_definitions(-DTGT_DEBUG)
 #add_definitions(-DVRN_DEBUG)
 #add_definitions(-D_DEBUG)
 
-#add_definitions(-ggdb)
+#add_definitions(-O3)
+add_definitions(-ggdb)
 
 include_directories(
     "../../common"
@@ -759,13 +759,14 @@ add_definitions(-DTGT_HAS_FTGL)
 add_definitions(-DTGT_HAS_ZLIB)
 add_definitions(-DTGT_HAS_ZIP)
 
-add_definitions(-O3)
 add_definitions(${QT_DEFINITIONS})
 add_definitions(-DQT_NO_DEBUG)
 #add_definitions(-DTGT_DEBUG)
 #add_definitions(-DVRN_DEBUG)
 #add_definitions(-D_DEBUG)
-#add_definitions(-ggdb)
+
+#add_definitions(-O3)
+add_definitions(-ggdb)
 
 file(
     GLOB MOC_HEADERS

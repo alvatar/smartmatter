@@ -7,6 +7,7 @@
 #include "tgt/event/eventhandler.h"
 
 #include "voreen/core/processors/volumeprocessor.h"
+#include "voreen/core/properties/boolproperty.h"
 #include "voreen/core/properties/intproperty.h"
 #include "voreen/core/properties/stringproperty.h"
 #include "voreen/core/datastructures/volume/volumeatomic.h"
@@ -68,21 +69,23 @@ protected:
 
     void changeCheckTime();
 
-    void createNewSharedMemory();
+    void adaptSharedSegment();
+
+    void toggleIPCRead();
 
 private:
     VolumePort _outport;
 
     static const std::string _loggerCat; // category used in logging
 
-    //! Class instances counter
-    static uint _count_instances;
-
     //! Volume dimensions
     IntProperty _x_dimension;
     IntProperty _y_dimension;
     IntProperty _z_dimension;
 
+    //! Enable/disable IPC reading
+    BoolProperty _toggle_ipc;
+    bool _enable_ipc;
     //! Timer
     IntProperty _timer_interval;
     static const uint _default_timer_interval;

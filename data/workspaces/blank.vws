@@ -1,0 +1,15 @@
+<?xml version="1.0" ?>
+<VoreenData version="1">
+    <Workspace version="2">
+        <VolumeContainer>
+            <VolumeHandles />
+        </VolumeContainer>
+        <ProcessorNetwork version="7">
+            <Processors />
+            <Connections />
+            <CoProcessorConnections />
+            <PropertyLinks />
+        </ProcessorNetwork>
+        <Animation />
+    </Workspace>
+</VoreenData>
