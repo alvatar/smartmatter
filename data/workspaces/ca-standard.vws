@@ -9,11 +9,18 @@
             </VolumeHandles>
         </VolumeContainer>
         <ProcessorNetwork version="7">
+            <MetaData>
+                <MetaItem name="ProcessorSelection" type="SelectionMetaData::Processor">
+                    <values>
+                        <item type="IPCVolumeSource" ref="ref6" />
+                    </values>
+                </MetaItem>
+            </MetaData>
             <Processors>
                 <Processor type="Canvas" name="Canvas" id="ref2">
                     <MetaData>
                         <MetaItem name="ProcessorGraphicsItem" type="PositionMetaData" x="-247" y="234" />
-                        <MetaItem name="ProcessorWidget" type="WindowStateMetaData" visible="true" x="433" y="207" width="481" height="454" />
+                        <MetaItem name="ProcessorWidget" type="WindowStateMetaData" visible="true" x="99" y="220" width="481" height="454" />
                     </MetaData>
                     <Properties>
                         <Property name="canvasSize">
@@ -290,13 +297,13 @@
                         <MetaItem name="ProcessorGraphicsItem" type="PositionMetaData" x="-541" y="-194" />
                     </MetaData>
                     <Properties>
-                        <Property name="create_double_buffer" value="true" />
+                        <Property name="create_double_buffer" value="false" />
                         <Property name="shared_memory_name" value="volume_shared_memory" />
                         <Property name="timer_interval" value="1000" />
                         <Property name="toggle_ipc" value="true" />
-                        <Property name="x_dimension" value="64" />
-                        <Property name="y_dimension" value="64" />
-                        <Property name="z_dimension" value="64" />
+                        <Property name="x_dimension" value="41" />
+                        <Property name="y_dimension" value="41" />
+                        <Property name="z_dimension" value="41" />
                     </Properties>
                     <InteractionHandlers />
                 </Processor>

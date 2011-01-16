@@ -2,4 +2,4 @@
 
 work/ipvr &
 sleep 1
-work/ipcc
+work/ipcc data/volumes/nucleon.raw

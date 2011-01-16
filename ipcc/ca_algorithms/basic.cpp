@@ -4,9 +4,6 @@
 
 #include <iostream>
 
-///// ALGORITMOS DE COMPORTAMIENTO
-// Especialización de células madre
-
 namespace voxel_state
 {
     enum t_voxel_state
@@ -73,6 +70,9 @@ struct basic_algorithm_data
 
 void basic_algorithm(uint size_x, uint size_y, uint size_z, VolumeUInt16* v1, VolumeUInt16* v2)
 {
+
+///// ALGORITMOS DE COMPORTAMIENTO
+// Especialización de células madre
     enum main_phases
     {
         find_entry,
@@ -109,6 +109,7 @@ void basic_algorithm(uint size_x, uint size_y, uint size_z, VolumeUInt16* v1, Vo
         // Phase 1: Find entry
         case find_entry:
         cout << "Step: find entry" << endl;
+        /*
         move_voxel(w, o.conquistador, ivec3(rand()%2, rand()%2, rand()%2));
         if(w == v2)
         {
@@ -129,6 +130,7 @@ void basic_algorithm(uint size_x, uint size_y, uint size_z, VolumeUInt16* v1, Vo
                 }
         }
         if(o.entry_found) o.current_main_phase++;
+        */
         break;
 
         ////////////////////////////////////////////////////////////////////////

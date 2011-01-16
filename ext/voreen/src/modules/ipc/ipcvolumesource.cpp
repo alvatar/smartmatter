@@ -154,42 +154,45 @@ void IPCVolumeSource::toggleDoubleBuffer()
 
 void IPCVolumeSource::adaptSharedSegment()
 {
-    // Remove previous shared memory
-    if(_allocator) { delete _allocator; _allocator = 0; }
-    if(_shared_segment) { delete _shared_segment; _shared_segment = 0; }
-    shared_memory_object::remove(_current_shared_memory_name.c_str());
+    if(isInitialized())
+    {
+        // Remove previous shared memory
+        if(_allocator) { delete _allocator; _allocator = 0; }
+        if(_shared_segment) { delete _shared_segment; _shared_segment = 0; }
+        shared_memory_object::remove(_current_shared_memory_name.c_str());
 
-    // Create new shared memory
-    uint size_x = _x_dimension.get();
-    uint size_y = _y_dimension.get();
-    uint size_z = _z_dimension.get();
+        // Create new shared memory
+        uint size_x = _x_dimension.get();
+        uint size_y = _y_dimension.get();
+        uint size_z = _z_dimension.get();
 
-    _current_shared_memory_name = _shared_memory_name.get();
-    shared_memory_object::remove(_current_shared_memory_name.c_str());
-    // TODO: Why do I need to add extra allocation? [2 places]
-    size_t buffer_size = size_x * size_y * size_z * sizeof(uint16_t);
+        _current_shared_memory_name = _shared_memory_name.get();
+        shared_memory_object::remove(_current_shared_memory_name.c_str());
+        // TODO: Why do I need to add extra allocation? [2 places]
+        size_t buffer_size = size_x * size_y * size_z * sizeof(uint16_t);
 
-    _double_buffer ? 
-        _shared_segment = new managed_shared_memory(create_only
-                                                    ,_current_shared_memory_name.c_str()
-                                                    ,(buffer_size * 2) + sizeof(ipc_volume_info) + 65536):
-        _shared_segment = new managed_shared_memory(create_only
-                                                    ,_current_shared_memory_name.c_str()
-                                                    ,buffer_size + sizeof(ipc_volume_info) + 65536);
+        _double_buffer ? 
+            _shared_segment = new managed_shared_memory(create_only
+                    ,_current_shared_memory_name.c_str()
+                    ,(buffer_size * 2) + sizeof(ipc_volume_info) + 65536):
+            _shared_segment = new managed_shared_memory(create_only
+                    ,_current_shared_memory_name.c_str()
+                    ,buffer_size + sizeof(ipc_volume_info) + 65536);
 
-    _allocator = new node_allocator_t(_shared_segment->get_segment_manager());
+        _allocator = new node_allocator_t(_shared_segment->get_segment_manager());
 
-    _volumeinfo = _shared_segment->construct<ipc_volume_info>(unique_instance)();
-    _volumeinfo->size_x = size_x;
-    _volumeinfo->size_y = size_y;
-    _volumeinfo->size_z = size_z;
-    _volumeinfo->double_buffer = _double_buffer;
+        _volumeinfo = _shared_segment->construct<ipc_volume_info>(unique_instance)();
+        _volumeinfo->size_x = size_x;
+        _volumeinfo->size_y = size_y;
+        _volumeinfo->size_z = size_z;
+        _volumeinfo->double_buffer = _double_buffer;
 
-    _double_buffer ? 
-        _volumedata = _shared_segment->construct<uint16_t>(unique_instance)[size_x*size_y*size_z * 2]():
-        _volumedata = _shared_segment->construct<uint16_t>(unique_instance)[size_x*size_y*size_z]();
+        _double_buffer ? 
+            _volumedata = _shared_segment->construct<uint16_t>(unique_instance)[size_x*size_y*size_z * 2]():
+            _volumedata = _shared_segment->construct<uint16_t>(unique_instance)[size_x*size_y*size_z]();
 
-    LINFO("Shared memory for IPC reallocated");
+        LINFO("Shared memory for IPC reallocated");
+    }
 }
 
 void IPCVolumeSource::timerEvent(tgt::TimeEvent* te)
